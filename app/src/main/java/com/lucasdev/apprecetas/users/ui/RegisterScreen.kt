@@ -29,6 +29,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.lucasdev.apprecetas.general.ui.appButton.AppButton
+import com.lucasdev.apprecetas.general.ui.appTextField.AppTextField
 
 //todo cambiar colores y fondo
 @Composable
@@ -73,66 +75,20 @@ fun RegisterScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
-            TextField(
-                value = name,
-                onValueChange = { updateFields(newName = it) },
-                label = { Text("Nombre*") },
-                modifier = Modifier.fillMaxWidth()
+            NameRegister(name, { updateFields(newName = it) })
+            EmailRegister(email, { updateFields(newEmail = it) })
+            PasswordRegister(password, { updateFields(newPassword = it) })
+            ConfirmPasswordRegister(confirmPassword, { updateFields(newConfirm = it) })
+            AppButton(
+                text = "Registrarse",
+                onClick = { registerViewModel.registerUser() },
+                enabled = isRegisterEnabled
             )
-            TextField(
-                value = email,
-                onValueChange = { updateFields(newEmail = it) },
-                label = { Text("Correo electrónico*") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            TextField(
-                value = password,
-                onValueChange = { updateFields(newPassword = it) },
-                label = { Text("Contraseña*") },
-                modifier = Modifier.fillMaxWidth(),
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    val image =
-                        if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(imageVector = image, contentDescription = "Toggle contraseña")
-                    }
-                }
-            )
-            TextField(
-                value = confirmPassword,
-                onValueChange = { updateFields(newConfirm = it) },
-                label = { Text("Repetir contraseña*") },
-                modifier = Modifier.fillMaxWidth(),
-                visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    val image =
-                        if (confirmPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility
-                    IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
-                        Icon(
-                            imageVector = image,
-                            contentDescription = "Toggle confirmar contraseña"
-                        )
-                    }
-                }
-            )
-
-            Button(
-                onClick = {
-                    registerViewModel.registerUser()
-                },
-                enabled = isRegisterEnabled,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Registrarse")
-            }
-            Button(
+            AppButton(
+                text = "Volver",
                 onClick = { backLoginScreen() },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Volver")
-            }
-
+                enabled = true
+            )
         }
 
         if (showSuccessDialog) {
@@ -159,21 +115,21 @@ fun RegisterScreen(
             ) {
                 CircularProgressIndicator()
             }
-    }
+        }
     }
 }
 
 
 @Composable
-fun DialogSuccess(onDismiss:() -> Unit) {
+fun DialogSuccess(onDismiss: () -> Unit) {
     AlertDialog(
-        onDismissRequest = {onDismiss() },
+        onDismissRequest = { onDismiss() },
         confirmButton = {
-            Button(onClick = {
-               onDismiss()
-            }) {
-                Text("Aceptar")
-            }
+            AppButton(
+                text = "Aceptar",
+                onClick = { onDismiss() },
+                enabled = true
+            )
         },
         title = { Text("Registro exitoso") },
         text = { Text("Tu cuenta ha sido creada correctamente.") }
@@ -181,15 +137,59 @@ fun DialogSuccess(onDismiss:() -> Unit) {
 }
 
 @Composable
-fun DialogError(errorMessage: String,onDismiss: () -> Unit) {
+fun DialogError(errorMessage: String, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = { onDismiss() },
         confirmButton = {
-            Button(onClick = { onDismiss() }) {
-                Text("Entendido")
-            }
+            AppButton(
+                text = "Aceptar",
+                onClick = { onDismiss() },
+                enabled = true
+            )
         },
         title = { Text("Error en el registro") },
         text = { Text(errorMessage) }
+    )
+}
+
+@Composable
+fun EmailRegister(email: String, updateFields: (String) -> Unit) {
+    AppTextField(
+        value = email,
+        onValueChange = { updateFields(it) },
+        placeholder = "Email*",
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+fun NameRegister(name: String, updateFields: (String) -> Unit) {
+    AppTextField(
+        value = name,
+        onValueChange = { updateFields(it) },
+        placeholder = "Nombre*",
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+fun PasswordRegister(password: String, updateFields: (String) -> Unit) {
+    AppTextField(
+        value = password,
+        onValueChange = { updateFields(it) },
+        placeholder = "Contraseña*",
+        modifier = Modifier.fillMaxWidth(),
+        isPassword = true
+    )
+}
+
+@Composable
+fun ConfirmPasswordRegister(confirmPassword: String, updateFields: (String) -> Unit) {
+    AppTextField(
+        value = confirmPassword,
+        onValueChange = { updateFields(it) },
+        placeholder = "Repetir contraseña*",
+        modifier = Modifier.fillMaxWidth(),
+        isPassword = true
     )
 }

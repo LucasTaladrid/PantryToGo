@@ -53,7 +53,10 @@ class LoginScreenViewModel @Inject constructor(private val auth:FirebaseAuth): V
                                     val isAdmin = documentSnapshot.getBoolean("isAdmin") ?: false
                                     // Guardamos el estado en el ViewModel
                                     _isAdmin.value = isAdmin
+                                    _isLoading.value = false
                                     onSuccess()
+
+
                                 } else {
                                     onError("Usuario no encontrado")
                                 }

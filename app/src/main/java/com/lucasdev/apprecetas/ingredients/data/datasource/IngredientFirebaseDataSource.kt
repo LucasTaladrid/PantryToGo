@@ -76,15 +76,8 @@ class IngredientFirebaseDataSource @Inject constructor() {
         return common + user
     }
 
-    suspend fun getIngredientsForDisplay(): List<IngredientModel> {
-        return if (isAdmin()) {
-            getCommonIngredients()
-        } else {
-            getUserIngredients()
-        }
-    }
 
-    //todo revisar y comprobar que funciona
+    //todo no genera errores pero sería bueno poder eliminar los ingredeintes propios si se agrega un ingrediente común igual.
     suspend fun addIngredient(ingredient: IngredientModel): Boolean {
         val exists = ingredientExists(ingredient.name)
         if (exists) return false
@@ -125,7 +118,6 @@ class IngredientFirebaseDataSource @Inject constructor() {
         val ref = if (admin) commonIngredientsRef() else userIngredientsRef()
 
         return try {
-            // Eliminar el ingrediente
             ref.document(id).delete().await()
             Log.d("IngredientFirebaseDataSource", "Ingredient deleted: $id")
             true
