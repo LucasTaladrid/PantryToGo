@@ -59,6 +59,7 @@ fun MyIngredientsScreen(myIngredientsViewModel: MyIngredientsViewModel, back: ()
     val showDeleteConfirmation by myIngredientsViewModel.showDeleteConfirmation.collectAsState()
     val selectedIngredient by myIngredientsViewModel.selectedIngredient.collectAsState()
     val isAdmin by myIngredientsViewModel.isAdmin.collectAsState()
+    val duplicateIngredient by myIngredientsViewModel.duplicateIngredient.collectAsState()
     LaunchedEffect(isAdmin) {
         myIngredientsViewModel.loadIngredientsForDisplay()
     }
@@ -155,6 +156,24 @@ fun MyIngredientsScreen(myIngredientsViewModel: MyIngredientsViewModel, back: ()
             dismissButton = {
                 OutlinedButton(onClick = { myIngredientsViewModel.showDeleteConfirmationDialog() }) {
                     Text("Eliminar")
+                }
+            }
+        )
+    }
+    if (duplicateIngredient != null) {
+        AlertDialog(
+            onDismissRequest = { myIngredientsViewModel.dismissDuplicateDialog() },
+            title = { Text("Este ingrediente ya existe") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Nombre:"+duplicateIngredient!!.name)
+                    Text("Categoría:"+duplicateIngredient!!.category.name)
+                    Text("Unidad:"+duplicateIngredient!!.unit.name)
+                }
+            },
+            confirmButton = {
+                Button(onClick = { myIngredientsViewModel.dismissDuplicateDialog() }) {
+                    Text("Aceptar")
                 }
             }
         )
