@@ -9,18 +9,20 @@ class PantryIngredientRepositoryImpl @Inject constructor(
     private val dataSource: PantryIngredientFirebaseDataSource
 ) : PantryIngredientRepository {
 
-    override suspend fun getIngredients(): List<PantryIngredientModel> = dataSource.getInventory()
+    override suspend fun getIngredients(): List<PantryIngredientModel> = dataSource.getPantry()
 
     override suspend fun addIngredient(ingredient: PantryIngredientModel): PantryIngredientModel =
-        dataSource.addIngredientToInventory(ingredient)
+        dataSource.addIngredientToPantry(ingredient)
 
     override suspend fun updateIngredient(ingredient: PantryIngredientModel): Boolean =
-        dataSource.updateIngredientInventory(ingredient)
+        dataSource.updateIngredientPantry(ingredient)
 
     override suspend fun deleteIngredient(id: String): Boolean =
-        dataSource.deleteIngredientFromInventory(id)
+        dataSource.deleteIngredientFromPantry(id)
 
     override suspend fun getIngredientById(id: String): PantryIngredientModel? {
         return dataSource.getIngredientById(id)
     }
+
+
 }
