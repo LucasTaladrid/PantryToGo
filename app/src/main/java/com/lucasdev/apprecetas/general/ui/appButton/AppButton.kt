@@ -14,18 +14,23 @@ fun AppButton(
     text: String,
     onClick: () -> Unit,
     enabled: Boolean = true,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    fullWidth: Boolean = true,
+    containerColor: Color = Color(0xFFD00E0E),
+    disabledContainerColor: Color = Color(0xFF5B1421),
+    contentColor: Color = Color.White,
+    disabledContentColor: Color = Color.White
 ) {
     Button(
         onClick = onClick,
         enabled = enabled,
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFFD00E0E),
-            disabledContainerColor = Color(0xFF5B1421),
-            contentColor = Color.White,
-            disabledContentColor = Color.White
+            containerColor = containerColor,
+            disabledContainerColor = disabledContainerColor,
+            contentColor = contentColor,
+            disabledContentColor = disabledContentColor
         ),
-        modifier = modifier.fillMaxWidth()
+        modifier = if (fullWidth) modifier.fillMaxWidth() else modifier
     ) {
         Text(text = text)
     }
