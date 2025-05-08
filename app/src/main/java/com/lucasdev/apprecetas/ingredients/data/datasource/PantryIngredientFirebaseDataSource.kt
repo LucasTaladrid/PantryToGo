@@ -62,6 +62,30 @@ class PantryIngredientFirebaseDataSource @Inject constructor() {
                 }
         }
 
+    //todo por probar su funcionamiento
+    suspend fun addIngredientsToPantry(userIngredients: List<PantryIngredientModel>): List<PantryIngredientModel> =
+        suspendCoroutine { cont ->
+            val batch = db.batch()
+            val ingredientsWithIds = mutableListOf<PantryIngredientModel>()
+
+            userIngredients.forEach { ingredient ->
+                val newDocRef = userPantryRef().document()
+                val ingredientWithId = ingredient.copy(id = newDocRef.id)
+
+                batch.set(newDocRef, ingredientWithId)
+                ingredientsWithIds.add(ingredientWithId)
+            }
+
+            batch.commit()
+                .addOnSuccessListener {
+                    cont.resume(ingredientsWithIds)
+                }
+                .addOnFailureListener { exception ->
+                    cont.resumeWithException(exception)
+                }
+        }
+
+
     suspend fun updateIngredientPantry(ingredient: PantryIngredientModel): Boolean {
 
         val docRef = userPantryRef()

@@ -28,3 +28,12 @@ class UpdateUserPantryIngredientUseCase @Inject constructor(private val reposito
 class DeleteUserPantryIngredientUseCase @Inject constructor(private val repository: PantryIngredientRepository) {
     suspend operator fun invoke(id: String) = repository.deleteIngredient(id)
 }
+class AddIngredientsToPantryFromShoppingUseCase @Inject constructor(
+    private val repository: PantryIngredientRepository
+) {
+
+    suspend operator fun invoke(ingredients: List<PantryIngredientModel>): List<PantryIngredientModel> {
+        return repository.addIngredientsToPantryFromShopping(ingredients)
+    }
+}
+
