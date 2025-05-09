@@ -1,7 +1,10 @@
 package com.lucasdev.apprecetas.shopping.ui
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.lucasdev.apprecetas.ingredients.domain.model.PantryIngredientModel
 import com.lucasdev.apprecetas.ingredients.domain.usecase.AddIngredientsToPantryFromShoppingUseCase
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingListModel
@@ -11,6 +14,7 @@ import com.lucasdev.apprecetas.shopping.domain.usecase.GetShoppingListsUseCase
 import com.lucasdev.apprecetas.shopping.domain.usecase.UpdateShoppingListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -21,7 +25,7 @@ class ShoppingListViewModel @Inject constructor(
     private val addShoppingList: AddShoppingListUseCase,
     private val updateShoppingList: UpdateShoppingListUseCase,
     private val deleteShoppingList: DeleteShoppingListUseCase,
-    private val addIngredientsToPantry: AddIngredientsToPantryFromShoppingUseCase // opcional, si lo tienes
+    private val addIngredientsToPantry: AddIngredientsToPantryFromShoppingUseCase
 ) : ViewModel() {
 
     private val _shoppingLists = MutableStateFlow<List<ShoppingListModel>>(emptyList())
@@ -33,8 +37,11 @@ class ShoppingListViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error = _error.asStateFlow()
 
+    private val _userName = MutableStateFlow("")
+    val userName: StateFlow<String> = _userName
     init {
         loadLists()
+        getUserName()
     }
 
     fun loadLists() {
@@ -48,6 +55,30 @@ class ShoppingListViewModel @Inject constructor(
             } finally {
                 _loading.value = false
             }
+        }
+    }
+    fun getUserName() {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser != null) {
+            val uid = currentUser.uid
+            FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(uid)
+                .get()
+                .addOnSuccessListener { document ->
+                    if (document != null && document.exists()) {
+                        val firestoreName = document.getString("name")
+                        if (!firestoreName.isNullOrEmpty()) {
+                            _userName.value = firestoreName
+                        }
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Log.e(
+                        "IngredientsViewModel",
+                        "Error al obtener nombre de usuario: ${e.message}"
+                    )
+                }
         }
     }
 

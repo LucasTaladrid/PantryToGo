@@ -18,18 +18,22 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 
 import com.lucasdev.apprecetas.R
+import com.lucasdev.apprecetas.ui.navigation.Routes
+
 //TODO conseguir que los iconos se puedan clickar
 val orange = Color(0xFFFFA500)
-@Preview(showBackground = true)
 @Composable
-fun BottomBarNavigation() {
+fun BottomBarNavigation(onNavigate: (String) -> Unit) {
     var index by remember { mutableStateOf(0) }
+
     NavigationBar(containerColor = Color.Red) {
 
         NavigationBarItem(
 
             selected = index == 0,
-            onClick = { index = 0 },
+            onClick = {
+                index = 0
+                onNavigate(Routes.Ingredients.route) },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color.Black,
                 indicatorColor = orange,
@@ -66,7 +70,8 @@ fun BottomBarNavigation() {
         )
         NavigationBarItem(
             selected = index == 2,
-            onClick = { index = 2 },
+            onClick = { index = 2
+                onNavigate(Routes.Shopping.route)},
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color.White,
                 indicatorColor = Color.Red,
