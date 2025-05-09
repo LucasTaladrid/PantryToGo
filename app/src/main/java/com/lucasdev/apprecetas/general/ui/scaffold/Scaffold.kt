@@ -15,8 +15,11 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -82,35 +85,35 @@ fun AppScaffold(
 TODO aquí se podrán encontrar los ajustes, mis recetas, mis recetas favoritas, mis recetas pendientes, mis recetas que voy hacer, las antiguas compras
 */
 @Composable
-fun MyModalDrawer(onNavigate: (String) -> Unit) {
-    Column(
-        Modifier.padding(8.dp)
-    ) {
-        NavigationDrawerItem( // Importante: Usar NavigationDrawerItem
-            label = { Text("Mis Ingredientes") }, // Importante: Usar label
-            selected = false,
-            onClick = { onNavigate(Routes.MyIngredients.route) } // Importante: Se llama a onDrawerClicked
-        )
-        NavigationDrawerItem(
-            label = { Text("Mis recetas", color = Color.White) },
-            selected = false,
-            onClick = { onNavigate("mis_recetas") },
-            colors = NavigationDrawerItemDefaults.colors(unselectedContainerColor = Color.Red)
-        )
-        NavigationDrawerItem(
-            label = { Text("Recetas pendientes") },
-            selected = false,
-            onClick = { /*onNavigate("mis_recetas")*/ }
-        )
-        NavigationDrawerItem(
-            label = { Text("Últimas compras") },
-            selected = false,
-            onClick = {/* onNavigate("mis_recetas")*/ }
-        )
-        NavigationDrawerItem(
-            label = { Text("Ajustes") },
-            selected = false,
-            onClick = {/* onNavigate("mis_recetas")*/ }
-        )
+fun MyModalDrawer(
+    onNavigate: (String) -> Unit
+) {
+    val items = listOf(
+        Routes.MyIngredients.route to "Mis Ingredientes",
+        "mis_recetas" to "Mis recetas",
+        "recetas_pendientes" to "Recetas pendientes",
+        "ultimas_compras" to "Últimas compras",
+        "ajustes" to "Ajustes"
+    )
+
+    var selectedRoute by remember { mutableStateOf<String?>(null) }
+
+    Column(Modifier.padding(8.dp)) {
+        items.forEach { (route, label) ->
+            val selected = selectedRoute == route
+            NavigationDrawerItem(
+                label = { Text(label) },
+                selected = selected,
+                onClick = {
+                    selectedRoute = route
+                    onNavigate(route)
+                },
+                colors = NavigationDrawerItemDefaults.colors(
+                    selectedContainerColor = Color.Red,
+                    unselectedContainerColor = Color.Magenta,
+                    selectedTextColor = Color.White
+                )
+            )
+        }
     }
 }
