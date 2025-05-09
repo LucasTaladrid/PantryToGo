@@ -15,19 +15,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,11 +33,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lucasdev.apprecetas.R
+import com.lucasdev.apprecetas.general.ui.appButton.AppButton
+import com.lucasdev.apprecetas.general.ui.appTextField.AppTextField
 
 //TODO AÑADIR BOTÓN DE REGISTRO Y COMPROBAR QUE FUNCIONA
 //todo cambiar el color de fondo para que sea acorde a la aplicación
@@ -55,6 +48,7 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
+    val isLoading by loginScreenViewModel.isLoading.collectAsState(initial = false)
     Box(
         modifier
             .fillMaxSize()
@@ -63,6 +57,16 @@ fun LoginScreen(
     ) {
         Header(Modifier.align(Alignment.TopEnd))
         Body(Modifier.align(Alignment.Center), loginScreenViewModel, onLoginSuccess)
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Color.Blue)
+            }
+        }
         Footer(Modifier.align(Alignment.BottomCenter),onNavigateToRegister)
     }
 
@@ -189,31 +193,18 @@ fun LoginButton(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val email: String by loginScreenViewModel.email.collectAsState(initial = "")
     val password: String by loginScreenViewModel.password.collectAsState(initial = "")
-    Button(
+    AppButton(
+        text = "Conectarse",
         onClick = {
             loginScreenViewModel.loginUser(
-                onSuccess = { onLoginSuccess() },
-                onError = { error -> errorMessage = error },
+                onSuccess = onLoginSuccess,
+                onError = { errorMessage = it },
                 email = email,
                 password = password
             )
-
-        }, enabled = loginEnable, colors = ButtonDefaults.buttonColors(
-            containerColor = Color(0xFFD00E0E),
-            disabledContainerColor = Color(0xFF5B1421),
-            contentColor = Color.White,
-            disabledContentColor = Color.White
-        ), modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(text = "Conectarse")
-    }
-    errorMessage?.let {
-        Text(
-            text = it,
-            color = Color.Red,
-            modifier = Modifier.padding(top = 8.dp)
-        )
-    }
+        },
+        enabled = loginEnable
+    )
 }
 
 @Composable
@@ -228,63 +219,23 @@ fun ForgotPassword(modifier: Modifier) {
 
 @Composable
 fun Password(password: String, onTextChange: (String) -> Unit) {
-    var passwordVisibility by remember { mutableStateOf(false) }
-    TextField(
+
+    AppTextField(
         value = password,
         onValueChange = { onTextChange(it) },
-        placeholder = { Text(text = "Password") },
-        maxLines = 1,
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        trailingIcon = {
-            val image = if (passwordVisibility) {
-                Icons.Filled.VisibilityOff
-            } else {
-                Icons.Filled.Visibility
-            }
-            IconButton(onClick = { passwordVisibility = !passwordVisibility }) {
-                Icon(imageVector = image, contentDescription = "show password")
-            }
-        },
-        colors = TextFieldDefaults.colors(
-            focusedTextColor = Color(0xFFB2B2B2),
-            unfocusedTextColor = Color(0xFFB2B2B2),
-            cursorColor = Color.Gray,
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            disabledContainerColor = Color(0xFFFAFAFA),
-            unfocusedContainerColor = Color(0xFFFAFAFA),
-            focusedContainerColor = Color(0xFFFAFAFA)
-        ),
-        visualTransformation = if (passwordVisibility) {
-            VisualTransformation.None
-        } else {
-            PasswordVisualTransformation()
-        },
-        modifier = Modifier.fillMaxWidth()
+        placeholder = "Contraseña",
+        keyboardType = KeyboardType.Password,
+        isPassword = true
     )
 }
 
 @Composable
 fun Email(email: String, onTextChange: (String) -> Unit) {
-    TextField(
+    AppTextField(
         value = email,
-        onValueChange = { onTextChange(it) },
-        placeholder = { Text(text = "Email") },
-        maxLines = 1,
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-        colors = TextFieldDefaults.colors(
-            focusedTextColor = Color(0xFFB2B2B2),
-            unfocusedTextColor = Color(0xFFB2B2B2),
-            cursorColor = Color.Gray,
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            disabledContainerColor = Color(0xFFFAFAFA),
-            unfocusedContainerColor = Color(0xFFFAFAFA),
-            focusedContainerColor = Color(0xFFFAFAFA)
-        ),
-        modifier = Modifier.fillMaxWidth()
+        onValueChange = {onTextChange(it) },
+        placeholder = "Email",
+        keyboardType = KeyboardType.Email
     )
 }
 

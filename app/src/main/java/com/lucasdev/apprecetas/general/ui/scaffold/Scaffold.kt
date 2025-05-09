@@ -63,7 +63,7 @@ fun AppScaffold(
             },
 
             snackbarHost = { SnackbarHost(snackbarHostState) },
-            bottomBar = { BottomBarNavigation() },
+            bottomBar = { BottomBarNavigation(onNavigate) },
             floatingActionButton = {
                 onFabClick?.let {
                     FAB(onFabClick = it)

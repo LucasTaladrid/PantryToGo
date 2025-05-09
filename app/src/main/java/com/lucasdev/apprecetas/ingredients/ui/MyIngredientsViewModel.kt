@@ -68,6 +68,10 @@ class MyIngredientsViewModel @Inject constructor(
     private val _ingredientNames = MutableStateFlow<List<String>>(emptyList())
     val ingredientNames: StateFlow<List<String>> = _ingredientNames
 
+    private val _duplicateIngredient = MutableStateFlow<IngredientModel?>(null)
+    val duplicateIngredient: StateFlow<IngredientModel?> = _duplicateIngredient
+
+
 
     init {
         viewModelScope.launch {
@@ -156,6 +160,9 @@ class MyIngredientsViewModel @Inject constructor(
         _showOptionsDialog.value = false
         _showDeleteConfirmation.value = true
     }
+    fun dismissDuplicateDialog() {
+        _duplicateIngredient.value = null
+    }
 
     fun onIngredientLongPress(ingredient: IngredientModel) {
         _selectedIngredient.value = ingredient
@@ -167,9 +174,10 @@ class MyIngredientsViewModel @Inject constructor(
 
     fun addNewIngredient(name: String, category: CategoryModel, unit: UnitTypeModel) {
 
-        val alreadyExists = allIngredients.any { it.name.equals(name, ignoreCase = true) }
+        val duplicate = allIngredients.find { it.name.equals(name, ignoreCase = true) }
 
-        if (alreadyExists) {
+        if (duplicate!=null) {
+            _duplicateIngredient.value = duplicate
             _errorMessage.value = "El ingrediente ya existe"
             return
         }
