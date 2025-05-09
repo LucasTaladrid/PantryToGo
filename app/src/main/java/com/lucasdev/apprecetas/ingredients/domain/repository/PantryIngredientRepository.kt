@@ -9,6 +9,8 @@ interface PantryIngredientRepository {
     suspend fun updateIngredient(ingredient: PantryIngredientModel):Boolean
     suspend fun deleteIngredient(id:String): Boolean
     suspend fun getIngredientById(id: String): PantryIngredientModel?
+    suspend fun addIngredientsToPantryFromShopping(ingredients: List<PantryIngredientModel>): List<PantryIngredientModel>
+
 
 
 }

@@ -20,6 +20,9 @@ class IngredientRepositoryImpl @Inject constructor(
     override suspend fun deleteIngredient(id: String): Boolean =
         dataSource.deleteIngredient(id)
 
-    override suspend fun getUserIngredients(): List<IngredientModel> = dataSource.getUserIngredients()
+    override suspend fun getUserIngredients(): List<IngredientModel> =
+        dataSource.getUserIngredients()
 
 }
+
+

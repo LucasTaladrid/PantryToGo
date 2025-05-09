@@ -1,0 +1,29 @@
+package com.lucasdev.apprecetas.shopping.domain.usecase
+
+import com.lucasdev.apprecetas.shopping.domain.model.ShoppingListModel
+import com.lucasdev.apprecetas.shopping.domain.repository.ShoppingListRepository
+import javax.inject.Inject
+
+class AddShoppingListUseCase @Inject constructor(
+    private val repository: ShoppingListRepository
+) {
+    suspend operator fun invoke(list: ShoppingListModel) = repository.addShoppingList(list)
+}
+
+class GetShoppingListsUseCase @Inject constructor(
+    private val repository: ShoppingListRepository
+) {
+    suspend operator fun invoke() = repository.getShoppingLists()
+}
+
+class UpdateShoppingListUseCase @Inject constructor(
+    private val repository: ShoppingListRepository
+) {
+    suspend operator fun invoke(list: ShoppingListModel) = repository.updateShoppingList(list)
+}
+
+class DeleteShoppingListUseCase @Inject constructor(
+    private val repository: ShoppingListRepository
+) {
+    suspend operator fun invoke(id: String) = repository.deleteShoppingList(id)
+}
