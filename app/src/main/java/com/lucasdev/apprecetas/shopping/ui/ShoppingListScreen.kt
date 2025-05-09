@@ -25,27 +25,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.lucasdev.apprecetas.general.ui.scaffold.AppScaffold
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingItemModel
 
 @Composable
 fun ShoppingListScreen(
     viewModel: ShoppingListViewModel,
-    onNavigate: (String) -> Unit
+    navController: NavHostController
 ) {
     val userName = viewModel.userName.collectAsState()
     val shoppingLists = viewModel.shoppingLists.collectAsState()
     val loading = viewModel.loading.collectAsState()
     val error = viewModel.error.collectAsState()
-
     var showAddDialog by remember { mutableStateOf(false) }
-
     val currentList = shoppingLists.value.firstOrNull()
 
     AppScaffold(
         userName = userName.value,
         onFabClick = { showAddDialog = true },
-        onNavigate = onNavigate,
+        navController = navController,
         content = { padding ->
 
         if (loading.value) {

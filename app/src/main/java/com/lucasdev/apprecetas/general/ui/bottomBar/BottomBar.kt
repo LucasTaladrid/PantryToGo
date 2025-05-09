@@ -1,6 +1,5 @@
 package com.lucasdev.apprecetas.general.ui.bottomBar
 
-
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Icon
@@ -10,30 +9,39 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
-
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.lucasdev.apprecetas.R
 import com.lucasdev.apprecetas.ui.navigation.Routes
 
 //TODO conseguir que los iconos se puedan clickar
 val orange = Color(0xFFFFA500)
 @Composable
-fun BottomBarNavigation(onNavigate: (String) -> Unit) {
-    var index by remember { mutableStateOf(0) }
+fun BottomBarNavigation(navController: NavHostController) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    val selectedIndex = when (currentRoute) {
+        Routes.Ingredients.route -> 0
+        Routes.Recepies.route -> 1
+        Routes.Shopping.route -> 2
+        else -> -1
+    }
 
     NavigationBar(containerColor = Color.Red) {
-
         NavigationBarItem(
-
-            selected = index == 0,
+            selected = selectedIndex == 0,
             onClick = {
-                index = 0
-                onNavigate(Routes.Ingredients.route) },
+                if (currentRoute != Routes.Ingredients.route) {
+                    navController.navigate(Routes.Ingredients.route) {
+                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+            },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color.Black,
                 indicatorColor = orange,
@@ -44,18 +52,26 @@ fun BottomBarNavigation(onNavigate: (String) -> Unit) {
             icon = {
                 Icon(
                     painter = painterResource(id = R.drawable.outline_dining_24),
-                    contentDescription = "Despensa",
-
+                    contentDescription = "Despensa"
                 )
             },
             label = { Text(text = "Despensa") }
         )
+
         NavigationBarItem(
-            selected = index == 1,
-            onClick = { index = 1 },
+            selected = selectedIndex == 1,
+            onClick = {
+                if (currentRoute != Routes.Recepies.route) {
+                    navController.navigate(Routes.Recepies.route) {
+                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+            },
             colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color.White,
-                indicatorColor = Color.Red,
+                selectedIconColor = Color.Black,
+                indicatorColor = orange,
                 unselectedIconColor = Color.Gray,
                 selectedTextColor = Color.White,
                 unselectedTextColor = Color.Gray
@@ -66,15 +82,23 @@ fun BottomBarNavigation(onNavigate: (String) -> Unit) {
                     contentDescription = "Recetas"
                 )
             },
-           label = { Text(text = "Recetas") }
+            label = { Text(text = "Recetas") }
         )
+
         NavigationBarItem(
-            selected = index == 2,
-            onClick = { index = 2
-                onNavigate(Routes.Shopping.route)},
+            selected = selectedIndex == 2,
+            onClick = {
+                if (currentRoute != Routes.Shopping.route) {
+                    navController.navigate(Routes.Shopping.route) {
+                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+            },
             colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color.White,
-                indicatorColor = Color.Red,
+                selectedIconColor = Color.Black,
+                indicatorColor = orange,
                 unselectedIconColor = Color.Gray,
                 selectedTextColor = Color.White,
                 unselectedTextColor = Color.Gray
