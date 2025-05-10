@@ -13,13 +13,12 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    val loginViewModel: LoginScreenViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             AppRecetasTheme {
-                AppNavHost(navController = rememberNavController(), loginViewModel)
+                AppNavHost(navController = rememberNavController())
                 }
             }
         }

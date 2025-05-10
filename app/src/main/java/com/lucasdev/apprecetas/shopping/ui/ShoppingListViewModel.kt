@@ -39,6 +39,7 @@ class ShoppingListViewModel @Inject constructor(
 
     private val _userName = MutableStateFlow("")
     val userName: StateFlow<String> = _userName
+
     init {
         loadLists()
         getUserName()
@@ -133,6 +134,7 @@ class ShoppingListViewModel @Inject constructor(
             }
         }
     }
+
     fun addToInventory(ingredients: List<PantryIngredientModel>) {
         viewModelScope.launch {
             try {
