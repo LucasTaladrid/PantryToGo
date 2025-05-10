@@ -16,12 +16,15 @@ import com.lucasdev.apprecetas.shopping.domain.model.ShoppingListModel
 import com.lucasdev.apprecetas.shopping.domain.usecase.AddIngredientToShoppingListUseCase
 import com.lucasdev.apprecetas.shopping.domain.usecase.AddShoppingListUseCase
 import com.lucasdev.apprecetas.shopping.domain.usecase.DeleteShoppingListUseCase
+import com.lucasdev.apprecetas.shopping.domain.usecase.GetItemsForListUseCase
 import com.lucasdev.apprecetas.shopping.domain.usecase.GetShoppingListsUseCase
+import com.lucasdev.apprecetas.shopping.domain.usecase.UpdateIngredientCheckedStatusUseCase
 import com.lucasdev.apprecetas.shopping.domain.usecase.UpdateShoppingListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
@@ -35,11 +38,16 @@ class ShoppingListViewModel @Inject constructor(
     private val addIngredientsToPantry: AddIngredientsToPantryFromShoppingUseCase,
     private val addIngredientToShoppingList: AddIngredientToShoppingListUseCase,
     private val getIngredientsUseCase: GetIngredientsUseCase,
-    private val getCategoriesUseCase: GetCategoriesUseCase
+    private val getCategoriesUseCase: GetCategoriesUseCase,
+    private val getItemsForList: GetItemsForListUseCase,
+    private val updateIngredientCheckedStatus: UpdateIngredientCheckedStatusUseCase
 ) : ViewModel() {
 
     private val _ingredients = MutableStateFlow<List<IngredientModel>>(emptyList())
     val ingredients: StateFlow<List<IngredientModel>> = _ingredients
+
+    private val _activeListItems = MutableStateFlow<List<ShoppingItemModel>>(emptyList())
+    val activeListItems: StateFlow<List<ShoppingItemModel>> = _activeListItems
 
     private val _categories = MutableStateFlow<List<CategoryModel>>(emptyList())
     val categories: StateFlow<List<CategoryModel>> = _categories
@@ -56,10 +64,18 @@ class ShoppingListViewModel @Inject constructor(
     private val _userName = MutableStateFlow("")
     val userName: StateFlow<String> = _userName
 
+    private val _activeListId = MutableStateFlow<String?>(null)
+    val activeListId: StateFlow<String?> = _activeListId
+
+
+
+
+
     init {
         loadLists()
         getUserName()
         ensureActiveListExists()
+        loadActiveListItems()
         loadIngredientsAndCategories()
     }
     private fun loadIngredientsAndCategories() {
@@ -84,14 +100,19 @@ class ShoppingListViewModel @Inject constructor(
                     val newList = ShoppingListModel(
                         title = "Lista activa"
                     )
-                    val success = addShoppingList(newList)
-                    if (success!=null) {
-                        _shoppingLists.value = listOf(newList)
+                    val createdList = addShoppingList(newList)
+                    if (createdList != null) {
+                        _shoppingLists.value = listOf(createdList)
+                        _activeListId.value = createdList.id
+                        loadActiveListItems()
                     } else {
                         _errorMessage.value = "No se pudo crear la lista activa"
                     }
                 } else {
-                    _shoppingLists.value = listOf(lists.first()) // solo la activa
+                    val active = lists.first()
+                    _shoppingLists.value = lists
+                    _activeListId.value = active.id
+                    loadActiveListItems()
                 }
             } catch (e: Exception) {
                 _errorMessage.value = e.message
@@ -106,15 +127,15 @@ class ShoppingListViewModel @Inject constructor(
             _isLoading.value = true
             _errorMessage.value = null
             try {
-                // Obtener todas las listas y ordenarlas por fecha descendente
                 val lists = getShoppingLists().sortedByDescending { it.date }
-                Log.d("ShoppingListViewModel", "Loaded shopping lists: $shoppingLists")
-                // Si hay listas, asignar la primera como la lista activa
-                if (lists.isNotEmpty()) {
-                    _shoppingLists.value = lists
-                } else {
-                    _shoppingLists.value = emptyList() // No hay listas, así que mostramos una lista vacía
+                _shoppingLists.value = lists
+
+                val active = lists.firstOrNull()
+                if (active != null) {
+                    _activeListId.value = active.id
+                    loadActiveListItems()
                 }
+
             } catch (e: Exception) {
                 _errorMessage.value = e.message
             } finally {
@@ -122,6 +143,28 @@ class ShoppingListViewModel @Inject constructor(
             }
         }
     }
+
+    fun loadActiveListItems() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val activeList = _shoppingLists.value.firstOrNull()
+                if (activeList != null && activeList.id.isNotEmpty()) {
+                    _activeListItems.value = getItemsForList(activeList.id)
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = "Error al cargar los ingredientes: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun setActiveListItems(items: List<ShoppingItemModel>) {
+        _activeListItems.value = items
+    }
+
+
     fun getUserName() {
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser != null) {
@@ -172,6 +215,7 @@ class ShoppingListViewModel @Inject constructor(
     }
 
     fun finalizePurchase(list: ShoppingListModel) {
+        /*
         val (checked, unchecked) = list.items.partition { it.checked }
 
         // Crear nuevo modelo sin los ingredientes marcados
@@ -197,6 +241,8 @@ class ShoppingListViewModel @Inject constructor(
                 _errorMessage.value = "Error al finalizar la compra"
             }
         }
+
+         */
     }
 
     fun addToInventory(ingredients: List<PantryIngredientModel>) {
@@ -245,12 +291,34 @@ class ShoppingListViewModel @Inject constructor(
                 } else {
                     // Opcional: recargar lista si quieres que se refleje al instante
                     loadLists()
+                    loadActiveListItems()
                 }
             } catch (e: Exception) {
                 _errorMessage.value = "Error al añadir el ingrediente: ${e.message}"
             }
         }
     }
+
+    fun toggleItemChecked(listId: String, itemId: String, isChecked: Boolean) {
+        viewModelScope.launch {
+            try {
+                val success = updateIngredientCheckedStatus(listId, itemId, isChecked)
+                if (success) {
+                    // Actualiza el StateFlow local
+                    _activeListItems.update { items ->
+                        items.map {
+                            if (it.ingredientId == itemId) it.copy(checked = isChecked) else it
+                        }
+                    }
+                } else {
+                    _errorMessage.value = "No se pudo actualizar el ítem"
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = "Error: ${e.message}"
+            }
+        }
+    }
+
 
 
 

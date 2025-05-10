@@ -17,6 +17,16 @@ class GetShoppingListsUseCase @Inject constructor(
     suspend operator fun invoke() = repository.getShoppingLists()
 }
 
+class GetItemsForListUseCase @Inject constructor(
+    private val repository: ShoppingListRepository
+) {
+    suspend operator fun invoke(listId: String) = repository.getItemsForList(listId)
+}
+class UpdateIngredientCheckedStatusUseCase @Inject constructor(
+    private val repository: ShoppingListRepository
+){
+    suspend operator fun invoke(listId: String, itemId: String, checked: Boolean) =repository.updateIngredientCheckedStatus(listId, itemId, checked)
+}
 class UpdateShoppingListUseCase @Inject constructor(
     private val repository: ShoppingListRepository
 ) {
@@ -29,6 +39,8 @@ class DeleteShoppingListUseCase @Inject constructor(
     suspend operator fun invoke(id: String) = repository.deleteShoppingList(id)
 }
 class AddIngredientToShoppingListUseCase @Inject constructor(
-    private val repository: ShoppingListRepository){
-    suspend operator fun invoke(listId: String, ingredient: ShoppingItemModel) = repository.addIngredientToShoppingList(listId, ingredient)
+    private val repository: ShoppingListRepository) {
+    suspend operator fun invoke(listId: String, ingredient: ShoppingItemModel) =
+        repository.addIngredientToShoppingList(listId, ingredient)
 }
+

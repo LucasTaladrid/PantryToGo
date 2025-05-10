@@ -11,7 +11,6 @@ data class ShoppingListModel(
     val id: String = "",
     val title: String = "",
     val date: Timestamp = Timestamp.now(),
-    val items: List<ShoppingItemModel> = emptyList()
 )
 data class ShoppingItemModel(
     val ingredientId: String = "",

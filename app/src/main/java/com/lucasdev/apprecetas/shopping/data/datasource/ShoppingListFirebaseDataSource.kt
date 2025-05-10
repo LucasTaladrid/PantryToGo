@@ -24,36 +24,39 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
         .collection("items")
 
     suspend fun getShoppingLists(): List<ShoppingListModel> {
-        val uid = Firebase.auth.currentUser?.uid ?: return emptyList()
+//        val uid = Firebase.auth.currentUser?.uid ?: return emptyList()
         val snapshot = db.collection("users").document(uid)
             .collection("shoppingLists")
             .orderBy("date", Query.Direction.DESCENDING)
             .get()
             .await()
 
-        // Obtenemos las listas de compras con sus items
         return snapshot.documents.mapNotNull { document ->
-            val shoppingList = document.toObject(ShoppingListModel::class.java)?.copy(id = document.id)
-
-            shoppingList?.let {
-                // Accedemos a la colección 'items' dentro del documento de cada lista de compras
-                val itemsSnapshot = db.collection("users").document(uid)
-                    .collection("shoppingLists")
-                    .document(document.id)
-                    .collection("items") // Aquí está la colección de items dentro del documento
-                    .get()
-                    .await()
-
-                // Convertimos los documentos de los items en ShoppingItemModel
-                val items = itemsSnapshot.documents.mapNotNull { itemDocument ->
-                    itemDocument.toObject(ShoppingItemModel::class.java)?.copy(ingredientId = itemDocument.id)
-                }
-
-                // Devolvemos la lista de la compra con los items añadidos
-                it.copy(items = items)
-            }
+            document.toObject(ShoppingListModel::class.java)?.copy(id = document.id)
         }
     }
+
+    suspend fun getItemsForList(listId: String): List<ShoppingItemModel> {
+        val itemsSnapshot = shoppingListItemsRef(listId).get().await()
+
+        return itemsSnapshot.documents.mapNotNull { itemDocument ->
+            itemDocument.toObject(ShoppingItemModel::class.java)?.copy(ingredientId = itemDocument.id)
+        }
+    }
+
+    suspend fun updateIngredientCheckedStatus(listId: String, itemId: String, checked: Boolean): Boolean {
+        return try {
+            val itemRef = shoppingListItemsRef(listId).document(itemId)
+
+            itemRef.update("checked", checked).await()
+            true
+        } catch (e: Exception) {
+            Log.e("ShoppingListFirebaseDataSource", "Error al actualizar el estado del item: ${e.message}")
+            false
+        }
+    }
+
+
 
 
     suspend fun addShoppingList(list: ShoppingListModel): ShoppingListModel? {

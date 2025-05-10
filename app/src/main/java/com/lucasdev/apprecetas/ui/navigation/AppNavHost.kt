@@ -64,7 +64,11 @@ fun AppNavHost(navController: NavHostController) {
             MyIngredientsScreen(
                 back = {
                     navController.navigate(Routes.Ingredients.route) {
-                        popUpTo(Routes.MyIngredients.route) { inclusive = true }
+                        popUpTo(Routes.Ingredients.route) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                        restoreState = true
                     }
                 },
                 myIngredientsViewModel = hiltViewModel()

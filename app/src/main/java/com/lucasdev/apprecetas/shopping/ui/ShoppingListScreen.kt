@@ -48,13 +48,15 @@ fun ShoppingListScreen(
     navController: NavHostController
 ) {
     val userName = viewModel.userName.collectAsState()
-    val shoppingLists = viewModel.shoppingLists.collectAsState()
     val loading = viewModel.isLoading.collectAsState()
     val error = viewModel.errorMessage.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
-    val currentList = shoppingLists.value.firstOrNull()
+    val activeListItems = viewModel.activeListItems.collectAsState()
     val ingredients = viewModel.ingredients.collectAsState()
     val categories = viewModel.categories.collectAsState()
+    val activeListId = viewModel.activeListId.collectAsState().value
+
+
 
 
 
@@ -81,7 +83,7 @@ fun ShoppingListScreen(
             }
 
 
-            currentList?.let { list ->
+            activeListItems.let { list ->
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -92,24 +94,24 @@ fun ShoppingListScreen(
                         style = MaterialTheme.typography.titleLarge,
                         modifier = Modifier.padding(16.dp)
                     )
-                    if (list.items.isNotEmpty()) {
+                    if (list.value.isNotEmpty()) {
                         LazyColumn(modifier = Modifier.weight(1f)) {
-                            items(list.items) { item ->
+                            items(list.value) { item ->
                                 ShoppingItemRow(
                                     item = item,
                                     onCheckedChange = { isChecked ->
-                                        val updatedItem = item.copy(checked = isChecked)
-                                        val updatedList = list.copy(
-                                            items = list.items.map { i -> if (i.ingredientId == item.ingredientId) updatedItem else i }
-                                        )
-                                        viewModel.updateList(updatedList)
+                                       activeListItems.let {
+                                           if (activeListId != null) {
+                                               viewModel.toggleItemChecked(activeListId,item.ingredientId,isChecked)
+                                           }
+                                       }
                                     }
                                 )
                             }
                         }
 
                         Button(
-                            onClick = { viewModel.finalizePurchase(list) },
+                            onClick = { /*viewModel.finalizePurchase(list)*/ },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp)
@@ -129,7 +131,7 @@ fun ShoppingListScreen(
             }
 
             // Add ingredient dialog
-            if (showAddDialog && currentList != null) {
+            if (showAddDialog && activeListItems != null) {
                 AddShoppingListIngredientDialog(
                     categories = categories.value,
                     availableIngredients = ingredients.value,
