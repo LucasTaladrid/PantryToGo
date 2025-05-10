@@ -21,7 +21,7 @@ import com.lucasdev.apprecetas.users.ui.RegisterViewModel
 
 
 @Composable
-fun AppNavHost(navController: NavHostController,loginScreenViewModel: LoginScreenViewModel) {
+fun AppNavHost(navController: NavHostController) {
     NavHost(
         navController = navController,
         startDestination = Routes.Login.route
@@ -57,7 +57,7 @@ fun AppNavHost(navController: NavHostController,loginScreenViewModel: LoginScree
             val isAdmin by loginViewModel.isAdmin.collectAsState()
             val pantryIngredientsViewModel: PantryIngredientsViewModel = hiltViewModel()
             LaunchedEffect(isAdmin) {pantryIngredientsViewModel.isAdmin=isAdmin }
-            IngredientsScreen(pantryIngredientsViewModel = hiltViewModel(), onNavigate = { route -> navController.navigate(route) })
+            IngredientsScreen(pantryIngredientsViewModel = hiltViewModel(), navController = navController)
         }
 
         composable(Routes.MyIngredients.route) {
@@ -75,9 +75,8 @@ fun AppNavHost(navController: NavHostController,loginScreenViewModel: LoginScree
 
             ShoppingListScreen(
                 viewModel = viewModel,
-                onNavigate = { route ->
-                    Log.d("Navigation", "Navigating to $route")
-                    navController.navigate(route) }
+                navController = navController
+
             )
         }
     }
