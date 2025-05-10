@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
@@ -38,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.lucasdev.apprecetas.general.ui.appButton.AppButton
 import com.lucasdev.apprecetas.general.ui.dropDownSelector.DropdownSelector
 import com.lucasdev.apprecetas.general.ui.scaffold.AppScaffoldWithoutBottomBar
 import com.lucasdev.apprecetas.ingredients.domain.model.CategoryModel
@@ -59,6 +61,7 @@ fun MyIngredientsScreen(myIngredientsViewModel: MyIngredientsViewModel, back: ()
     val showDeleteConfirmation by myIngredientsViewModel.showDeleteConfirmation.collectAsState()
     val selectedIngredient by myIngredientsViewModel.selectedIngredient.collectAsState()
     val isAdmin by myIngredientsViewModel.isAdmin.collectAsState()
+    val duplicateIngredient by myIngredientsViewModel.duplicateIngredient.collectAsState()
     LaunchedEffect(isAdmin) {
         myIngredientsViewModel.loadIngredientsForDisplay()
     }
@@ -66,10 +69,10 @@ fun MyIngredientsScreen(myIngredientsViewModel: MyIngredientsViewModel, back: ()
         title = "Mis ingredientes",
         onBackClick = back,
         content = { innerPadding ->
-            LazyColumn (
+            LazyColumn(
                 contentPadding = innerPadding,
                 modifier = Modifier.fillMaxSize()
-            ){
+            ) {
                 ingredientSections.forEachIndexed { index, section ->
                     if (index == 0 || section.category != ingredientSections[index - 1].category) {
                         item {
@@ -87,8 +90,12 @@ fun MyIngredientsScreen(myIngredientsViewModel: MyIngredientsViewModel, back: ()
                                 .padding(horizontal = 16.dp, vertical = 4.dp)
                                 .combinedClickable(
                                     onClick = {},
-                                    onLongClick = {myIngredientsViewModel.onIngredientLongPress(ingredient)}
-                                ) ,
+                                    onLongClick = {
+                                        myIngredientsViewModel.onIngredientLongPress(
+                                            ingredient
+                                        )
+                                    }
+                                ),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(text = ingredient.name)
@@ -156,6 +163,26 @@ fun MyIngredientsScreen(myIngredientsViewModel: MyIngredientsViewModel, back: ()
                 OutlinedButton(onClick = { myIngredientsViewModel.showDeleteConfirmationDialog() }) {
                     Text("Eliminar")
                 }
+            }
+        )
+    }
+    if (duplicateIngredient != null) {
+        AlertDialog(
+            onDismissRequest = { myIngredientsViewModel.dismissDuplicateDialog() },
+            title = { Text("Este ingrediente ya existe") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Nombre:" + duplicateIngredient!!.name)
+                    Text("Categoría:" + duplicateIngredient!!.category.name)
+                    Text("Unidad:" + duplicateIngredient!!.unit.name)
+                }
+            },
+            confirmButton = {
+                AppButton(
+                    text = "Aceptar",
+                    onClick = { myIngredientsViewModel.dismissDuplicateDialog() },
+                    fullWidth = false,
+                    modifier = Modifier.width(150.dp))
             }
         )
     }

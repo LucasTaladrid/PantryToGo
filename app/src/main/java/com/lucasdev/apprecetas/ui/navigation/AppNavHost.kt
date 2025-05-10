@@ -1,5 +1,6 @@
 package com.lucasdev.apprecetas.ui.navigation
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -13,12 +14,14 @@ import com.lucasdev.apprecetas.users.ui.LoginScreenViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lucasdev.apprecetas.ingredients.ui.MyIngredientsScreen
 import com.lucasdev.apprecetas.ingredients.ui.PantryIngredientsViewModel
+import com.lucasdev.apprecetas.shopping.ui.ShoppingListScreen
+import com.lucasdev.apprecetas.shopping.ui.ShoppingListViewModel
 import com.lucasdev.apprecetas.users.ui.RegisterScreen
 import com.lucasdev.apprecetas.users.ui.RegisterViewModel
 
 
 @Composable
-fun AppNavHost(navController: NavHostController,loginScreenViewModel: LoginScreenViewModel) {
+fun AppNavHost(navController: NavHostController) {
     NavHost(
         navController = navController,
         startDestination = Routes.Login.route
@@ -54,7 +57,7 @@ fun AppNavHost(navController: NavHostController,loginScreenViewModel: LoginScree
             val isAdmin by loginViewModel.isAdmin.collectAsState()
             val pantryIngredientsViewModel: PantryIngredientsViewModel = hiltViewModel()
             LaunchedEffect(isAdmin) {pantryIngredientsViewModel.isAdmin=isAdmin }
-            IngredientsScreen(pantryIngredientsViewModel = hiltViewModel(), onNavigate = { route -> navController.navigate(route) })
+            IngredientsScreen(pantryIngredientsViewModel = hiltViewModel(), navController = navController)
         }
 
         composable(Routes.MyIngredients.route) {
@@ -65,6 +68,15 @@ fun AppNavHost(navController: NavHostController,loginScreenViewModel: LoginScree
                     }
                 },
                 myIngredientsViewModel = hiltViewModel()
+            )
+        }
+        composable(Routes.Shopping.route){
+            val viewModel: ShoppingListViewModel = hiltViewModel()
+
+            ShoppingListScreen(
+                viewModel = viewModel,
+                navController = navController
+
             )
         }
     }

@@ -6,7 +6,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -17,14 +16,12 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -43,6 +40,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.lucasdev.apprecetas.general.ui.dropDownSelector.DropdownSelector
 import com.lucasdev.apprecetas.general.ui.scaffold.AppScaffold
 import com.lucasdev.apprecetas.ingredients.domain.model.CategoryModel
@@ -54,7 +52,7 @@ import com.lucasdev.apprecetas.ingredients.domain.model.PantryIngredientModel
 @Composable
 fun IngredientsScreen(
     pantryIngredientsViewModel: PantryIngredientsViewModel,
-    onNavigate: (String) -> Unit
+    navController: NavHostController
 ) {
     val pantryIngredients = pantryIngredientsViewModel.pantryIngredients.collectAsState()
     val availableIngredients = pantryIngredientsViewModel.allIngredients.collectAsState()
@@ -63,6 +61,7 @@ fun IngredientsScreen(
     val categories = pantryIngredientsViewModel.categories.collectAsState()
     val editingIngredient=pantryIngredientsViewModel.selectedIngredientToEdit.collectAsState()
     val groupedIngredients = pantryIngredientsViewModel.groupedIngredients.collectAsState()
+    val loading = pantryIngredientsViewModel.isLoading.collectAsState()
 
 
     //todo cambiar por viewmodel
@@ -76,8 +75,14 @@ fun IngredientsScreen(
         onFabClick = {
             showDialog = true
         },
-        onNavigate = onNavigate,
+        navController = navController,
         content = { paddingValues ->
+            if (loading.value) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+                return@AppScaffold
+            }
             Column(modifier = Modifier.padding(paddingValues)) {
                 Text("Pantalla de Ingredientes", modifier = Modifier.padding(16.dp))
 

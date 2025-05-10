@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.lucasdev.apprecetas.general.ui.bottomBar.BottomBarNavigation
 import com.lucasdev.apprecetas.general.ui.fabButton.FAB
 import com.lucasdev.apprecetas.general.ui.topBar.TopBar
@@ -35,7 +36,7 @@ fun AppScaffold(
     modifier: Modifier = Modifier,
     content: @Composable (PaddingValues) -> Unit,
     onFabClick: (() -> Unit)? = null,
-    onNavigate: (String) -> Unit
+    navController: NavHostController,
 ) {
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -49,7 +50,7 @@ fun AppScaffold(
                 MyModalDrawer { route ->
                     coroutineScope.launch {
                         drawerState.close()
-                        onNavigate(route)
+                        navController.navigate(route)
                     }
                 }
             }
@@ -66,7 +67,7 @@ fun AppScaffold(
             },
 
             snackbarHost = { SnackbarHost(snackbarHostState) },
-            bottomBar = { BottomBarNavigation() },
+            bottomBar = { BottomBarNavigation(navController = navController) },
             floatingActionButton = {
                 onFabClick?.let {
                     FAB(onFabClick = it)
