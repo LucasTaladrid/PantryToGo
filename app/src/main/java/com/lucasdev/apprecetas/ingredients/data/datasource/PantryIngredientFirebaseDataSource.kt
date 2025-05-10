@@ -63,6 +63,7 @@ class PantryIngredientFirebaseDataSource @Inject constructor() {
         }
 
     //todo por probar su funcionamiento
+    //todo este método será para añadir de golpe muchos ingredientes que vienen de la shopping list
     suspend fun addIngredientsToPantry(userIngredients: List<PantryIngredientModel>): List<PantryIngredientModel> =
         suspendCoroutine { cont ->
             val batch = db.batch()

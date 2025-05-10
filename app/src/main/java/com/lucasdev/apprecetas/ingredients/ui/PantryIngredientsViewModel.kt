@@ -39,6 +39,7 @@ class PantryIngredientsViewModel @Inject constructor(
 
     ) : ViewModel() {
     var isAdmin: Boolean = false
+
     private val _isDialogOpen = MutableStateFlow(false)
     val isDialogOpen: StateFlow<Boolean> = _isDialogOpen
 
