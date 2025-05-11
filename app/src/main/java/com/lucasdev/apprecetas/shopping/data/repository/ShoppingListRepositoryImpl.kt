@@ -19,6 +19,10 @@ class ShoppingListRepositoryImpl @Inject constructor(
     override suspend fun addIngredientToShoppingList(listId: String, item: ShoppingItemModel): Boolean =
         dataSource.addIngredientToShoppingListItemCollection(listId, item)
 
-    }
+    override suspend fun deleteItemFromList(listId: String, itemId: String): Boolean =
+        dataSource.deleteItemFromList(listId, itemId)
+
+
+}
 
 

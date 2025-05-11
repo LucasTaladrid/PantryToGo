@@ -1,6 +1,5 @@
 package com.lucasdev.apprecetas.ui.navigation
 
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -63,22 +62,18 @@ fun AppNavHost(navController: NavHostController) {
         composable(Routes.MyIngredients.route) {
             MyIngredientsScreen(
                 back = {
-                    navController.navigate(Routes.Ingredients.route) {
-                        popUpTo(Routes.Ingredients.route) {
-                            inclusive = false
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
+                    navController.navigateUp()
                 },
                 myIngredientsViewModel = hiltViewModel()
             )
         }
         composable(Routes.Shopping.route){
             val viewModel: ShoppingListViewModel = hiltViewModel()
+            val pantryIngredientsViewModel: PantryIngredientsViewModel = hiltViewModel()
 
             ShoppingListScreen(
-                viewModel = viewModel,
+                shoppingListViewModel = viewModel,
+                pantryIngredientsViewModel = pantryIngredientsViewModel,
                 navController = navController
 
             )

@@ -44,3 +44,8 @@ class AddIngredientToShoppingListUseCase @Inject constructor(
         repository.addIngredientToShoppingList(listId, ingredient)
 }
 
+class DeleteItemFromShoppingListUseCase @Inject constructor(
+    private val repository: ShoppingListRepository){
+    suspend operator fun invoke(listId: String, itemId: String) = repository.deleteItemFromList(listId, itemId)
+}
+

@@ -24,7 +24,6 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
         .collection("items")
 
     suspend fun getShoppingLists(): List<ShoppingListModel> {
-//        val uid = Firebase.auth.currentUser?.uid ?: return emptyList()
         val snapshot = db.collection("users").document(uid)
             .collection("shoppingLists")
             .orderBy("date", Query.Direction.DESCENDING)
@@ -40,13 +39,16 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
         val itemsSnapshot = shoppingListItemsRef(listId).get().await()
 
         return itemsSnapshot.documents.mapNotNull { itemDocument ->
-            itemDocument.toObject(ShoppingItemModel::class.java)?.copy(ingredientId = itemDocument.id)
+            itemDocument.toObject(ShoppingItemModel::class.java)?.copy(id = itemDocument.id)
         }
+
     }
 
     suspend fun updateIngredientCheckedStatus(listId: String, itemId: String, checked: Boolean): Boolean {
         return try {
             val itemRef = shoppingListItemsRef(listId).document(itemId)
+
+            Log.d("updateCheck", "Actualizando itemId: $itemId en lista: $listId con valor: $checked")
 
             itemRef.update("checked", checked).await()
             true
@@ -55,9 +57,6 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
             false
         }
     }
-
-
-
 
     suspend fun addShoppingList(list: ShoppingListModel): ShoppingListModel? {
         val uid = Firebase.auth.currentUser?.uid ?: return null
@@ -73,9 +72,6 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
         }
     }
 
-
-
-
     suspend fun updateShoppingList(list: ShoppingListModel): Boolean {
         val uid = Firebase.auth.currentUser?.uid ?: return false
         return try {
@@ -88,8 +84,6 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
         }
     }
 
-
-
     suspend fun deleteShoppingList(id: String): Boolean {
         return try {
             db.collection("users").document(uid)
@@ -100,37 +94,43 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
         }
     }
 
-
-
-
-    suspend fun addIngredientToShoppingListItemCollection(listId: String, ingredient: ShoppingItemModel): Boolean {
+    suspend fun deleteItemFromList(listId: String, itemId: String): Boolean {
         return try {
-            // Obtenemos la referencia a la subcolección "items" de la lista de compras del usuario
-            val itemsRef = shoppingListItemsRef(listId)
-
-            // Verificar si el ingrediente ya está en la subcolección "items"
-            val snapshot = itemsRef.whereEqualTo("name", ingredient.name).get().await()
-
-            if (snapshot.isEmpty) {
-                // Si el ingrediente no existe, lo añadimos a la subcolección "items"
-                itemsRef.add(ingredient).await()
-                true
-            } else {
-                // Si el ingrediente ya existe, obtenemos el documento y actualizamos la cantidad
-                val existingItemDoc = snapshot.documents.first()
-                val existingItem = existingItemDoc.toObject(ShoppingItemModel::class.java)!!
-
-                // Actualizamos la cantidad del ingrediente en la subcolección
-                val updatedIngredient = existingItem.copy(quantity = existingItem.quantity + ingredient.quantity)
-                itemsRef.document(existingItemDoc.id).set(updatedIngredient).await()
-
-                true
-            }
+            shoppingListItemsRef(listId).document(itemId).delete().await()
+            true
         } catch (e: Exception) {
             false
         }
     }
 
+    suspend fun addIngredientToShoppingListItemCollection(listId: String, ingredient: ShoppingItemModel): Boolean {
+        return try {
+            val itemsRef = shoppingListItemsRef(listId)
+
+            // Verificar si ya existe un documento con este ingrediente
+            val snapshot = itemsRef.whereEqualTo("ingredientId", ingredient.id).get().await()
+
+            if (snapshot.isEmpty) {
+                // Si no existe, lo añadimos como un nuevo documento
+                val addedDocRef = itemsRef.add(ingredient.copy(id = "")).await()
+                val generatedId = addedDocRef.id
+                addedDocRef.update("id", generatedId).await()
+                true
+            } else {
+                // Si el ingrediente ya existe, actualizamos su cantidad
+                val existingItemDoc = snapshot.documents.first()
+                val existingItem = existingItemDoc.toObject(ShoppingItemModel::class.java)!!
+
+                // Actualizamos la cantidad del ingrediente
+                val updatedIngredient = existingItem.copy(quantity = existingItem.quantity + ingredient.quantity)
+                itemsRef.document(existingItemDoc.id).set(updatedIngredient).await()
+                true
+            }
+        } catch (e: Exception) {
+            Log.e("ShoppingListFirebaseDataSource", "Error al añadir o actualizar ingrediente en la lista de compras: ${e.message}")
+            false
+        }
+    }
 
 
 }

@@ -39,22 +39,24 @@ import com.lucasdev.apprecetas.general.ui.dropDownSelector.DropdownSelector
 import com.lucasdev.apprecetas.general.ui.scaffold.AppScaffold
 import com.lucasdev.apprecetas.ingredients.domain.model.CategoryModel
 import com.lucasdev.apprecetas.ingredients.domain.model.IngredientModel
+import com.lucasdev.apprecetas.ingredients.ui.PantryIngredientsViewModel
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingItemModel
 
 
 @Composable
 fun ShoppingListScreen(
-    viewModel: ShoppingListViewModel,
+    shoppingListViewModel: ShoppingListViewModel,
+    pantryIngredientsViewModel: PantryIngredientsViewModel,
     navController: NavHostController
 ) {
-    val userName = viewModel.userName.collectAsState()
-    val loading = viewModel.isLoading.collectAsState()
-    val error = viewModel.errorMessage.collectAsState()
+    val userName = shoppingListViewModel.userName.collectAsState()
+    val loading = shoppingListViewModel.isLoading.collectAsState()
+    val error = shoppingListViewModel.errorMessage.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
-    val activeListItems = viewModel.activeListItems.collectAsState()
-    val ingredients = viewModel.ingredients.collectAsState()
-    val categories = viewModel.categories.collectAsState()
-    val activeListId = viewModel.activeListId.collectAsState().value
+    val activeListItems = shoppingListViewModel.activeListItems.collectAsState()
+    val ingredients = shoppingListViewModel.ingredients.collectAsState()
+    val categories = shoppingListViewModel.categories.collectAsState()
+    val activeListId = shoppingListViewModel.activeListId.collectAsState().value
 
 
 
@@ -102,7 +104,7 @@ fun ShoppingListScreen(
                                     onCheckedChange = { isChecked ->
                                        activeListItems.let {
                                            if (activeListId != null) {
-                                               viewModel.toggleItemChecked(activeListId,item.ingredientId,isChecked)
+                                               shoppingListViewModel.toggleItemChecked(activeListId,item.id,isChecked)
                                            }
                                        }
                                     }
@@ -111,7 +113,7 @@ fun ShoppingListScreen(
                         }
 
                         Button(
-                            onClick = { /*viewModel.finalizePurchase(list)*/ },
+                            onClick = {shoppingListViewModel.moveCheckedItemsToPantry(pantryIngredientsViewModel) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp)
@@ -119,7 +121,7 @@ fun ShoppingListScreen(
                             Text("Finalizar Compra")
                         }
                     } else {
-                        // Si no hay items, mostramos un mensaje
+
                         Text(
                             text = "No hay ingredientes en esta lista.",
                             modifier = Modifier
@@ -131,14 +133,14 @@ fun ShoppingListScreen(
             }
 
             // Add ingredient dialog
-            if (showAddDialog && activeListItems != null) {
+            if (showAddDialog) {
                 AddShoppingListIngredientDialog(
                     categories = categories.value,
                     availableIngredients = ingredients.value,
                     onDismiss = { showAddDialog = false },
                     errorMessage = error.value,
                     onConfirm = { ingredient, quantity ->
-                        viewModel.addIngredientToList(ingredient, quantity)
+                        shoppingListViewModel.addIngredientToList(ingredient, quantity)
                         showAddDialog = false
                     }
                 )

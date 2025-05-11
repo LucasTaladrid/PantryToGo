@@ -1,6 +1,7 @@
 package com.lucasdev.apprecetas.shopping.domain.model
 
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.Exclude
 import com.lucasdev.apprecetas.ingredients.domain.model.CategoryModel
 import com.lucasdev.apprecetas.ingredients.domain.model.UnitTypeModel
 
@@ -13,10 +14,12 @@ data class ShoppingListModel(
     val date: Timestamp = Timestamp.now(),
 )
 data class ShoppingItemModel(
+    val id: String = "",
     val ingredientId: String = "",
     val name: String = "",
     val quantity: Double = 0.0,
     val unit: UnitTypeModel = UnitTypeModel(),
     val category: CategoryModel = CategoryModel(),
-    val checked: Boolean = false
+    val checked: Boolean = false,
+
 )

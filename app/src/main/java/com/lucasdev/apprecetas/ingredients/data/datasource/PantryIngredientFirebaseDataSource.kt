@@ -45,22 +45,60 @@ class PantryIngredientFirebaseDataSource @Inject constructor() {
             null
         }
     }
-
-    suspend fun addIngredientToPantry(userIngredient: PantryIngredientModel): PantryIngredientModel =
-        suspendCoroutine { cont ->
-
+    suspend fun getIngredientByIngredientId(ingredientId: String): PantryIngredientModel? {
+        return suspendCoroutine { cont ->
             userPantryRef()
-                .add(userIngredient)
-                .addOnSuccessListener { docRef ->
-                    val newIngredientWithId = userIngredient.copy(
-                        id = docRef.id
-                    )
-                    cont.resume(newIngredientWithId)
+                .whereEqualTo("ingredientId", ingredientId)
+                .limit(1)
+                .get()
+                .addOnSuccessListener { querySnapshot ->
+                    val doc = querySnapshot.documents.firstOrNull()
+                    if (doc != null) {
+                        val ingredient = doc.toObject(PantryIngredientModel::class.java)?.copy(id = doc.id)
+                        cont.resume(ingredient)
+                    } else {
+                        cont.resume(null)
+                    }
                 }
                 .addOnFailureListener { exception ->
                     cont.resumeWithException(exception)
                 }
         }
+    }
+
+
+    suspend fun addIngredientToPantry(userIngredient: PantryIngredientModel): PantryIngredientModel =
+        suspendCoroutine { cont ->
+            val ingredientDocRef = userPantryRef().document(userIngredient.ingredientId)
+
+            ingredientDocRef.get()
+                .addOnSuccessListener { snapshot ->
+                    if (snapshot.exists()) {
+                        val existingQuantity = snapshot.getDouble("quantity") ?: 0.0
+                        val updatedQuantity = existingQuantity + userIngredient.quantity
+
+                        ingredientDocRef.update("quantity", updatedQuantity)
+                            .addOnSuccessListener {
+                                val updatedIngredient = userIngredient.copy(
+                                    id = ingredientDocRef.id,
+                                    quantity = updatedQuantity
+                                )
+                                cont.resume(updatedIngredient)
+                            }
+                            .addOnFailureListener { cont.resumeWithException(it) }
+
+                    } else {
+                        ingredientDocRef.set(userIngredient)
+                            .addOnSuccessListener {
+                                val newIngredient = userIngredient.copy(id = ingredientDocRef.id)
+                                cont.resume(newIngredient)
+                            }
+                            .addOnFailureListener { cont.resumeWithException(it) }
+                    }
+                }
+                .addOnFailureListener { cont.resumeWithException(it) }
+        }
+
 
     //todo por probar su funcionamiento
     //todo este método será para añadir de golpe muchos ingredientes que vienen de la shopping list

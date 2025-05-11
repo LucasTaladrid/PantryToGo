@@ -1,9 +1,7 @@
 package com.lucasdev.apprecetas.ingredients.domain.usecase
 
 import com.lucasdev.apprecetas.ingredients.domain.model.CategoryModel
-import com.lucasdev.apprecetas.ingredients.domain.model.IngredientModel
 import com.lucasdev.apprecetas.ingredients.domain.repository.CategoriesRepository
-
 import javax.inject.Inject
 
 class GetCategoriesUseCase @Inject constructor(private val repository: CategoriesRepository) {

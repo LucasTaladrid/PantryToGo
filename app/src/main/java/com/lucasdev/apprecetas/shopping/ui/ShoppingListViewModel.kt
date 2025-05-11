@@ -11,10 +11,13 @@ import com.lucasdev.apprecetas.ingredients.domain.model.PantryIngredientModel
 import com.lucasdev.apprecetas.ingredients.domain.usecase.AddIngredientsToPantryFromShoppingUseCase
 import com.lucasdev.apprecetas.ingredients.domain.usecase.GetCategoriesUseCase
 import com.lucasdev.apprecetas.ingredients.domain.usecase.GetIngredientsUseCase
+import com.lucasdev.apprecetas.ingredients.domain.usecase.UpdateUserPantryIngredientUseCase
+import com.lucasdev.apprecetas.ingredients.ui.PantryIngredientsViewModel
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingItemModel
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingListModel
 import com.lucasdev.apprecetas.shopping.domain.usecase.AddIngredientToShoppingListUseCase
 import com.lucasdev.apprecetas.shopping.domain.usecase.AddShoppingListUseCase
+import com.lucasdev.apprecetas.shopping.domain.usecase.DeleteItemFromShoppingListUseCase
 import com.lucasdev.apprecetas.shopping.domain.usecase.DeleteShoppingListUseCase
 import com.lucasdev.apprecetas.shopping.domain.usecase.GetItemsForListUseCase
 import com.lucasdev.apprecetas.shopping.domain.usecase.GetShoppingListsUseCase
@@ -33,14 +36,13 @@ import javax.inject.Inject
 class ShoppingListViewModel @Inject constructor(
     private val getShoppingLists: GetShoppingListsUseCase,
     private val addShoppingList: AddShoppingListUseCase,
-    private val updateShoppingList: UpdateShoppingListUseCase,
-    private val deleteShoppingList: DeleteShoppingListUseCase,
-    private val addIngredientsToPantry: AddIngredientsToPantryFromShoppingUseCase,
     private val addIngredientToShoppingList: AddIngredientToShoppingListUseCase,
     private val getIngredientsUseCase: GetIngredientsUseCase,
     private val getCategoriesUseCase: GetCategoriesUseCase,
     private val getItemsForList: GetItemsForListUseCase,
-    private val updateIngredientCheckedStatus: UpdateIngredientCheckedStatusUseCase
+    private val updateIngredientCheckedStatus: UpdateIngredientCheckedStatusUseCase,
+    private val updateUserPantryIngredientUseCase: UpdateUserPantryIngredientUseCase,
+    private val deleteItemFromShoppingListUseCase: DeleteItemFromShoppingListUseCase,
 ) : ViewModel() {
 
     private val _ingredients = MutableStateFlow<List<IngredientModel>>(emptyList())
@@ -160,10 +162,6 @@ class ShoppingListViewModel @Inject constructor(
         }
     }
 
-    fun setActiveListItems(items: List<ShoppingItemModel>) {
-        _activeListItems.value = items
-    }
-
 
     fun getUserName() {
         val currentUser = FirebaseAuth.getInstance().currentUser
@@ -190,71 +188,6 @@ class ShoppingListViewModel @Inject constructor(
         }
     }
 
-    fun addList(list: ShoppingListModel) {
-        viewModelScope.launch {
-            val success = addShoppingList(list)
-            if (success!=null) loadLists()
-            else _errorMessage.value = "Error al guardar la lista"
-        }
-    }
-
-    fun updateList(list: ShoppingListModel) {
-        viewModelScope.launch {
-            val success = updateShoppingList(list)
-            if (success) loadLists()
-            else _errorMessage.value = "Error al actualizar la lista"
-        }
-    }
-
-    fun deleteList(id: String) {
-        viewModelScope.launch {
-            val success = deleteShoppingList(id)
-            if (success) loadLists()
-            else _errorMessage.value = "Error al eliminar la lista"
-        }
-    }
-
-    fun finalizePurchase(list: ShoppingListModel) {
-        /*
-        val (checked, unchecked) = list.items.partition { it.checked }
-
-        // Crear nuevo modelo sin los ingredientes marcados
-        val updatedList = list.copy(items = unchecked)
-
-        viewModelScope.launch {
-            val updateSuccess = updateShoppingList(updatedList)
-            if (updateSuccess) {
-                if (checked.isNotEmpty()) {
-                    val pantryItems = checked.map {
-                        PantryIngredientModel(
-                            ingredientId = it.ingredientId,
-                            name = it.name,
-                            category =it.category,
-                            unit = it.unit,
-                            quantity = it.quantity
-                        )
-                    }
-                    addToInventory(pantryItems) // necesitas este use case implementado
-                }
-                loadLists()
-            } else {
-                _errorMessage.value = "Error al finalizar la compra"
-            }
-        }
-
-         */
-    }
-
-    fun addToInventory(ingredients: List<PantryIngredientModel>) {
-        viewModelScope.launch {
-            try {
-                val addedIngredients = addIngredientsToPantry(ingredients) // Añadir todos los ingredientes de una vez
-                // Aquí puedes realizar cualquier otra acción con los ingredientes añadidos
-            } catch (e: Exception) {
-                _errorMessage.value = "Error al añadir ingredientes a la despensa: ${e.message}"
-            }
-        }
-    }
     fun addIngredientToList(ingredient: IngredientModel, quantity: Double) {
         viewModelScope.launch {
             var activeList = _shoppingLists.value.firstOrNull()
@@ -307,7 +240,7 @@ class ShoppingListViewModel @Inject constructor(
                     // Actualiza el StateFlow local
                     _activeListItems.update { items ->
                         items.map {
-                            if (it.ingredientId == itemId) it.copy(checked = isChecked) else it
+                            if (it.id == itemId) it.copy(checked = isChecked) else it
                         }
                     }
                 } else {
@@ -318,6 +251,44 @@ class ShoppingListViewModel @Inject constructor(
             }
         }
     }
+
+    fun moveCheckedItemsToPantry(pantryIngredientsViewModel: PantryIngredientsViewModel) {
+        viewModelScope.launch {
+            val activeList = _shoppingLists.value.firstOrNull()
+            if (activeList == null) {
+                _errorMessage.value = "No hay lista activa"
+                return@launch
+            }
+
+            val checkedItems = _activeListItems.value.filter { it.checked }
+
+            if (checkedItems.isEmpty()) {
+                _errorMessage.value = "No hay elementos marcados"
+                return@launch
+            }
+
+            checkedItems.forEach { item ->
+                val ingredient = IngredientModel(
+                    id = item.ingredientId,
+                    name = item.name,
+                    category = item.category,
+                    unit = item.unit
+                )
+                pantryIngredientsViewModel.addOrUpdateIngredientInPantry(ingredient, item.quantity)
+                Log.e("ShoppingListViewModel", "Ingrediente a trasnferir ${ingredient.name} Cantidad a transferir ${item.quantity}")
+
+
+            }
+
+            // (Opcional) Borrar los ingredientes movidos de la lista de compra
+            checkedItems.forEach { item ->
+               deleteItemFromShoppingListUseCase(activeList.id, item.id)
+            }
+
+            loadActiveListItems()
+        }
+    }
+
 
 
 

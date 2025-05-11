@@ -17,12 +17,12 @@ import com.lucasdev.apprecetas.ingredients.domain.usecase.GetCategoriesUseCase
 import com.lucasdev.apprecetas.ingredients.domain.usecase.GetIngredientsUseCase
 import com.lucasdev.apprecetas.ingredients.domain.usecase.GetUnitTypeUseCase
 import com.lucasdev.apprecetas.ingredients.domain.usecase.GetUserIngredientUseCase
+import com.lucasdev.apprecetas.ingredients.domain.usecase.GetUserPantryIngredientByIngredientIdUseCase
 import com.lucasdev.apprecetas.ingredients.domain.usecase.GetUserPantryIngredientsUseCase
 import com.lucasdev.apprecetas.ingredients.domain.usecase.UpdateUserPantryIngredientUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -36,6 +36,7 @@ class PantryIngredientsViewModel @Inject constructor(
     private val getIngredientsUseCase: GetIngredientsUseCase,
     private val getUnitTypeUseCase: GetUnitTypeUseCase,
     private val getCategoriesUseCase: GetCategoriesUseCase,
+    private val getUserPantryIngredientByIngredientIdUseCase: GetUserPantryIngredientByIngredientIdUseCase
 
     ) : ViewModel() {
     var isAdmin: Boolean = false
@@ -106,11 +107,11 @@ class PantryIngredientsViewModel @Inject constructor(
                 val updatedUnit = ingredientsMap[pantry.ingredientId]?.unit ?: pantry.unit
                 pantry.copy(unit = updatedUnit)
             }
-
             _pantryIngredients.value = updatedIngredients
             _isLoading.value = false
         }
     }
+
 
     private suspend fun loadIngredients() {
         val allIngredientsUser = getUserIngredientUseCase()
@@ -193,24 +194,21 @@ class PantryIngredientsViewModel @Inject constructor(
 
 
     fun addOrUpdateIngredientInPantry(ingredient: IngredientModel, quantity: Double) {
-        val existingIngredient = _pantryIngredients.value.find { it.ingredientId == ingredient.id }
-
         viewModelScope.launch {
+            val existingIngredient = getUserPantryIngredientByIngredientIdUseCase(ingredient.id)
+
             if (existingIngredient != null) {
                 val updatedIngredient = existingIngredient.copy(
                     quantity = existingIngredient.quantity + quantity
                 )
                 val success = updateUserPantryIngredientUseCase(updatedIngredient)
-
                 if (success) {
-
                     _pantryIngredients.value = _pantryIngredients.value.map {
                         if (it.id == updatedIngredient.id) updatedIngredient else it
                     }
                 } else {
-                    //todo log de error
+                    Log.e("PantryIngredientsViewModel", "Error al actualizar el ingrediente existente")
                 }
-
             } else {
                 val newIngredient = PantryIngredientModel(
                     ingredientId = ingredient.id,
@@ -221,11 +219,13 @@ class PantryIngredientsViewModel @Inject constructor(
                 )
 
                 val addedIngredient = addUserPantryIngredientUseCase(newIngredient)
-
                 _pantryIngredients.value = _pantryIngredients.value + addedIngredient
             }
         }
     }
+
+
+
 
     fun updatedIngredientInPantry(updated: PantryIngredientModel) {
         viewModelScope.launch {
@@ -239,7 +239,7 @@ class PantryIngredientsViewModel @Inject constructor(
                     }
                     closeEditDialog()
                 } else {
-               //todo log de error
+                    Log.e("PantryIngredientsViewModel", "Error al actualizar el ingrediente")
                 }
             }
         }

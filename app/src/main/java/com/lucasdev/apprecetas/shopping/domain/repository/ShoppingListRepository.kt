@@ -11,4 +11,6 @@ interface ShoppingListRepository {
     suspend fun updateIngredientCheckedStatus(listId: String, itemId: String, checked: Boolean): Boolean
     suspend fun deleteShoppingList(id: String): Boolean
     suspend fun addIngredientToShoppingList(listId: String, item: ShoppingItemModel): Boolean
+    suspend fun deleteItemFromList(listId: String, itemId: String): Boolean
+
 }
