@@ -95,6 +95,18 @@ class PantryIngredientsViewModel @Inject constructor(
             }
         }
     }
+    fun refreshPantry() {
+        viewModelScope.launch {
+            loadIngredients()
+            loadUserPantryIngredients()
+            loadCategoriesAndUnits()
+            pantryIngredients.collect {
+                groupIngredients()
+            }
+
+        }
+    }
+
 
     private fun loadUserPantryIngredients() {
         viewModelScope.launch {
@@ -104,9 +116,16 @@ class PantryIngredientsViewModel @Inject constructor(
             val ingredientsMap = _allIngredients.value.associateBy { it.id }
 
             val updatedIngredients = userIngredients.map { pantry ->
-                val updatedUnit = ingredientsMap[pantry.ingredientId]?.unit ?: pantry.unit
-                pantry.copy(unit = updatedUnit)
+                val baseIngredient = ingredientsMap[pantry.ingredientId]
+                val updatedUnit = baseIngredient?.unit ?: pantry.unit
+                val updatedCategory = baseIngredient?.category ?: pantry.category
+
+                pantry.copy(
+                    unit = updatedUnit,
+                    category = updatedCategory
+                )
             }
+
             _pantryIngredients.value = updatedIngredients
             _isLoading.value = false
         }
