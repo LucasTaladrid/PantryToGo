@@ -7,30 +7,24 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.lucasdev.apprecetas.ingredients.domain.model.CategoryModel
 import com.lucasdev.apprecetas.ingredients.domain.model.IngredientModel
-import com.lucasdev.apprecetas.ingredients.domain.model.PantryIngredientModel
-import com.lucasdev.apprecetas.ingredients.domain.usecase.AddIngredientsToPantryFromShoppingUseCase
 import com.lucasdev.apprecetas.ingredients.domain.usecase.GetCategoriesUseCase
 import com.lucasdev.apprecetas.ingredients.domain.usecase.GetIngredientsUseCase
 import com.lucasdev.apprecetas.ingredients.domain.usecase.UpdateUserPantryIngredientUseCase
 import com.lucasdev.apprecetas.ingredients.ui.PantryIngredientsViewModel
-import com.lucasdev.apprecetas.shopping.domain.model.ShoppingItemModel
+import com.lucasdev.apprecetas.shopping.domain.model.ShoppingIngredientModel
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingItemSection
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingListModel
 import com.lucasdev.apprecetas.shopping.domain.usecase.AddIngredientToShoppingListUseCase
 import com.lucasdev.apprecetas.shopping.domain.usecase.AddShoppingListUseCase
 import com.lucasdev.apprecetas.shopping.domain.usecase.DeleteItemFromShoppingListUseCase
-import com.lucasdev.apprecetas.shopping.domain.usecase.DeleteShoppingListUseCase
 import com.lucasdev.apprecetas.shopping.domain.usecase.GetItemsForListUseCase
 import com.lucasdev.apprecetas.shopping.domain.usecase.GetShoppingListsUseCase
 import com.lucasdev.apprecetas.shopping.domain.usecase.UpdateIngredientCheckedStatusUseCase
-import com.lucasdev.apprecetas.shopping.domain.usecase.UpdateShoppingListUseCase
+import com.lucasdev.apprecetas.shopping.domain.usecase.UpdateItemInShoppingListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -42,15 +36,15 @@ class ShoppingListViewModel @Inject constructor(
     private val getCategoriesUseCase: GetCategoriesUseCase,
     private val getItemsForList: GetItemsForListUseCase,
     private val updateIngredientCheckedStatus: UpdateIngredientCheckedStatusUseCase,
-    private val updateUserPantryIngredientUseCase: UpdateUserPantryIngredientUseCase,
     private val deleteItemFromShoppingListUseCase: DeleteItemFromShoppingListUseCase,
+    private val updateItemInShoppingListUseCase: UpdateItemInShoppingListUseCase
 ) : ViewModel() {
 
     private val _ingredients = MutableStateFlow<List<IngredientModel>>(emptyList())
     val ingredients: StateFlow<List<IngredientModel>> = _ingredients
 
-    private val _activeListItems = MutableStateFlow<List<ShoppingItemModel>>(emptyList())
-    val activeListItems: StateFlow<List<ShoppingItemModel>> = _activeListItems
+    private val _activeListItems = MutableStateFlow<List<ShoppingIngredientModel>>(emptyList())
+    val activeListItems: StateFlow<List<ShoppingIngredientModel>> = _activeListItems
 
     private val _categories = MutableStateFlow<List<CategoryModel>>(emptyList())
     val categories: StateFlow<List<CategoryModel>> = _categories
@@ -74,9 +68,6 @@ class ShoppingListViewModel @Inject constructor(
     val shoppingItemSections: StateFlow<List<ShoppingItemSection>> = _shoppingItemSections
 
 
-
-
-
     init {
         loadLists()
         getUserName()
@@ -84,12 +75,14 @@ class ShoppingListViewModel @Inject constructor(
         loadActiveListItems()
         loadIngredientsAndCategories()
     }
+
     fun refreshShoppingList() {
         viewModelScope.launch {
             loadLists()
             loadIngredientsAndCategories()
         }
     }
+
     private fun loadIngredientsAndCategories() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -103,7 +96,8 @@ class ShoppingListViewModel @Inject constructor(
             }
         }
     }
-    fun ensureActiveListExists() {
+
+    private fun ensureActiveListExists() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
@@ -134,7 +128,7 @@ class ShoppingListViewModel @Inject constructor(
         }
     }
 
-    fun loadLists() {
+    private fun loadLists() {
         viewModelScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
@@ -156,7 +150,7 @@ class ShoppingListViewModel @Inject constructor(
         }
     }
 
-    fun loadActiveListItems() {
+    private fun loadActiveListItems() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
@@ -164,15 +158,11 @@ class ShoppingListViewModel @Inject constructor(
                 if (activeList != null && activeList.id.isNotEmpty()) {
                     val items = getItemsForList(activeList.id)
 
-                    val grouped = items
-                        .groupBy { it.category.name}
-                        .map { (category, itemsInCategory) ->
-                            ShoppingItemSection(
-                                category = category,
-                                items = itemsInCategory.sortedBy { it.name.lowercase() }
-                            )
-                        }
-                        .sortedBy { it.category.lowercase() }
+                    val grouped =
+                        items.groupBy { it.category.name }.map { (category, itemsInCategory) ->
+                                ShoppingItemSection(category = category,
+                                    items = itemsInCategory.sortedBy { it.name.lowercase() })
+                            }.sortedBy { it.category.lowercase() }
 
                     _activeListItems.value = items // por si lo necesitas sin agrupar
                     _shoppingItemSections.value = grouped
@@ -185,16 +175,11 @@ class ShoppingListViewModel @Inject constructor(
         }
     }
 
-
-
-    fun getUserName() {
+    private fun getUserName() {
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser != null) {
             val uid = currentUser.uid
-            FirebaseFirestore.getInstance()
-                .collection("users")
-                .document(uid)
-                .get()
+            FirebaseFirestore.getInstance().collection("users").document(uid).get()
                 .addOnSuccessListener { document ->
                     if (document != null && document.exists()) {
                         val firestoreName = document.getString("name")
@@ -202,11 +187,9 @@ class ShoppingListViewModel @Inject constructor(
                             _userName.value = firestoreName
                         }
                     }
-                }
-                .addOnFailureListener { e ->
+                }.addOnFailureListener { e ->
                     Log.e(
-                        "IngredientsViewModel",
-                        "Error al obtener nombre de usuario: ${e.message}"
+                        "IngredientsViewModel", "Error al obtener nombre de usuario: ${e.message}"
                     )
                 }
         }
@@ -233,7 +216,7 @@ class ShoppingListViewModel @Inject constructor(
                 return@launch
             }
 
-            val item = ShoppingItemModel(
+            val item = ShoppingIngredientModel(
                 ingredientId = ingredient.id,
                 name = ingredient.name,
                 category = ingredient.category,
@@ -268,15 +251,11 @@ class ShoppingListViewModel @Inject constructor(
                     _activeListItems.value = updatedItems
 
                     // Vuelve a agrupar por categoría
-                    val grouped = updatedItems
-                        .groupBy { it.category.name }
+                    val grouped = updatedItems.groupBy { it.category.name }
                         .map { (category, itemsInCategory) ->
-                            ShoppingItemSection(
-                                category = category,
-                                items = itemsInCategory.sortedBy { it.name.lowercase() }
-                            )
-                        }
-                        .sortedBy { it.category.lowercase() }
+                            ShoppingItemSection(category = category,
+                                items = itemsInCategory.sortedBy { it.name.lowercase() })
+                        }.sortedBy { it.category.lowercase() }
 
                     _shoppingItemSections.value = grouped
                 } else {
@@ -287,7 +266,6 @@ class ShoppingListViewModel @Inject constructor(
             }
         }
     }
-
 
     fun moveCheckedItemsToPantry(pantryIngredientsViewModel: PantryIngredientsViewModel) {
         viewModelScope.launch {
@@ -312,22 +290,58 @@ class ShoppingListViewModel @Inject constructor(
                     unit = item.unit
                 )
                 pantryIngredientsViewModel.addOrUpdateIngredientInPantry(ingredient, item.quantity)
-                Log.e("ShoppingListViewModel", "Ingrediente a trasnferir ${ingredient.name} Cantidad a transferir ${item.quantity}")
-
-
+                Log.e(
+                    "ShoppingListViewModel",
+                    "Ingrediente a trasnferir ${ingredient.name} Cantidad a transferir ${item.quantity}"
+                )
             }
-
-            // (Opcional) Borrar los ingredientes movidos de la lista de compra
             checkedItems.forEach { item ->
-               deleteItemFromShoppingListUseCase(activeList.id, item.id)
+                deleteItemFromShoppingListUseCase(activeList.id, item.id)
             }
 
             loadActiveListItems()
         }
     }
 
+    fun updateItem(item: ShoppingIngredientModel) {
+        viewModelScope.launch {
+            try {
+                val success = updateItemInShoppingListUseCase(
+                    _activeListId.value ?: return@launch, item
+                )
+                if (success) {
+                    loadActiveListItems()
+                } else {
+                    _errorMessage.value = "No se pudo actualizar el item"
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = "Error actualizando item: ${e.message}"
+            }
+        }
+    }
 
+    fun deleteItem(item: ShoppingIngredientModel) {
+        viewModelScope.launch {
+            try {
+                val success = deleteItemFromShoppingListUseCase(
+                    _activeListId.value ?: return@launch, item.id
+                )
+                if (success) {
+                    loadActiveListItems()
+                } else {
+                    _errorMessage.value = "No se pudo actualizar el item"
+                }
 
+            } catch (e: Exception) {
+                _errorMessage.value = "Error al eliminar el item: ${e.message}"
 
-
+            }
+        }
+    }
 }
+
+
+
+
+
+

@@ -2,6 +2,7 @@ package com.lucasdev.apprecetas.shopping.ui
 
 import android.util.Log
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -44,7 +46,7 @@ import com.lucasdev.apprecetas.general.ui.scaffold.AppScaffold
 import com.lucasdev.apprecetas.ingredients.domain.model.CategoryModel
 import com.lucasdev.apprecetas.ingredients.domain.model.IngredientModel
 import com.lucasdev.apprecetas.ingredients.ui.PantryIngredientsViewModel
-import com.lucasdev.apprecetas.shopping.domain.model.ShoppingItemModel
+import com.lucasdev.apprecetas.shopping.domain.model.ShoppingIngredientModel
 
 
 @Composable
@@ -56,13 +58,18 @@ fun ShoppingListScreen(
     val userName = shoppingListViewModel.userName.collectAsState()
     val loading = shoppingListViewModel.isLoading.collectAsState()
     val error = shoppingListViewModel.errorMessage.collectAsState()
-    var showAddDialog by remember { mutableStateOf(false) }
-
     val sections = shoppingListViewModel.shoppingItemSections.collectAsState()
     val ingredients = shoppingListViewModel.ingredients.collectAsState()
     val categories = shoppingListViewModel.categories.collectAsState()
     val activeListId = shoppingListViewModel.activeListId.collectAsState().value
     val lifecycleOwner = LocalLifecycleOwner.current
+
+    //todo cambiar por viewmodel
+    var selectedItem by remember { mutableStateOf<ShoppingIngredientModel?>(null) }
+    var showEditDeleteChoiceDialog by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf(false) }
+    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
+    var showAddDialog by remember { mutableStateOf(false) }
 
 
     DisposableEffect(lifecycleOwner) {
@@ -136,12 +143,15 @@ fun ShoppingListScreen(
                                                 isChecked
                                             )
                                         }
+                                    },
+                                    onLongPress = {
+                                        selectedItem = it
+                                        showEditDeleteChoiceDialog = true
                                     }
                                 )
                             }
                         }
                     }
-
                     Button(
                         onClick = {
                             shoppingListViewModel.moveCheckedItemsToPantry(pantryIngredientsViewModel)
@@ -173,6 +183,58 @@ fun ShoppingListScreen(
                     }
                 )
             }
+            if (showEditDeleteChoiceDialog && selectedItem != null) {
+                AlertDialog(
+                    onDismissRequest = { showEditDeleteChoiceDialog = false },
+                    title = { Text("¿Qué deseas hacer?") },
+                    text = {
+                        Text("Selecciona una acción para el ingrediente:\n\n${selectedItem!!.name}")
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            showEditDeleteChoiceDialog = false
+                            showEditDialog = true
+                        }) {
+                            Text("Modificar")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = {
+                            showEditDeleteChoiceDialog = false
+                            showDeleteConfirmDialog = true
+                        }) {
+                            Text("Eliminar")
+                        }
+                    }
+                )
+            }
+            if (showEditDialog && selectedItem != null) {
+                EditShoppingItemDialog(
+                    item = selectedItem!!,
+                    onDismiss = { showEditDialog = false },
+                    onDelete = {
+                        showEditDialog = false
+                        showDeleteConfirmDialog = true
+                    },
+                    onSave = { updated ->
+                        shoppingListViewModel.updateItem(updated)
+                        showEditDialog = false
+                    }
+                )
+            }
+
+            if (showDeleteConfirmDialog && selectedItem != null) {
+                ConfirmDeleteDialog(
+                    ingredient = selectedItem!!,
+                    onConfirm = {
+                        shoppingListViewModel.deleteItem(selectedItem!!)
+                        showDeleteConfirmDialog = false
+                    },
+                    onDismiss = { showDeleteConfirmDialog = false }
+                )
+            }
+
+
         }
     )
 }
@@ -180,13 +242,19 @@ fun ShoppingListScreen(
 
 @Composable
 fun ShoppingItemRow(
-    item: ShoppingItemModel,
+    item: ShoppingIngredientModel,
     onCheckedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onLongPress: (ShoppingIngredientModel) -> Unit
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onLongPress = { onLongPress(item) }
+                )
+            }
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -315,5 +383,81 @@ fun AddShoppingListIngredientDialog(
         }
     )
 }
+
+@Composable
+fun EditShoppingItemDialog(
+    item: ShoppingIngredientModel,
+    onDismiss: () -> Unit,
+    onDelete: () -> Unit,
+    onSave: (ShoppingIngredientModel) -> Unit
+) {
+    var quantity by remember { mutableStateOf(item.quantity.toString()) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Modificar ítem") },
+        text = {
+            Column {
+                Text("Nombre: ${item.name}")
+                Text("Categoría: ${item.category.name}")
+                Text("Unidad: ${item.unit.name}")
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = quantity,
+                    onValueChange = { quantity = it },
+                    label = { Text("Cantidad") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = {
+                val updated = item.copy(
+                    quantity = quantity.toDoubleOrNull() ?: item.quantity
+                )
+                onSave(updated)
+            }) {
+                Text("Confirmar")
+            }
+        },
+        dismissButton = {
+            Row {
+                TextButton(onClick = onDismiss) {
+                    Text("Cancelar")
+                }
+                Spacer(Modifier.width(8.dp))
+                TextButton(onClick = onDelete) {
+                    Text("Borrar")
+                }
+            }
+        }
+    )
+}
+@Composable
+fun ConfirmDeleteDialog(
+    ingredient: ShoppingIngredientModel,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Confirmar eliminación") },
+        text = {
+            Column {
+                Text("¿Seguro de que quieres eliminar el siguiente ingrediente?")
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("• ${ingredient.name}")
+                Text("• Cantidad: ${ingredient.quantity} ${ingredient.unit.name}")
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) { Text("Borrar") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancelar") }
+        }
+    )
+}
+
 
 

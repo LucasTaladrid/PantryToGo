@@ -6,7 +6,7 @@ import com.google.firebase.auth.auth
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import com.lucasdev.apprecetas.ingredients.domain.model.IngredientModel
-import com.lucasdev.apprecetas.shopping.domain.model.ShoppingItemModel
+import com.lucasdev.apprecetas.shopping.domain.model.ShoppingIngredientModel
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingListModel
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -31,11 +31,11 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
         }
     }
 
-    suspend fun getItemsForList(listId: String): List<ShoppingItemModel> {
+    suspend fun getItemsForList(listId: String): List<ShoppingIngredientModel> {
         val itemsSnapshot = shoppingListItemsRef(listId).get().await()
 
         return itemsSnapshot.documents.mapNotNull { itemDocument ->
-            itemDocument.toObject(ShoppingItemModel::class.java)?.copy(id = itemDocument.id)
+            itemDocument.toObject(ShoppingIngredientModel::class.java)?.copy(id = itemDocument.id)
         }
 
     }
@@ -87,7 +87,6 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
         }
     }
 
-
     suspend fun addShoppingList(list: ShoppingListModel): ShoppingListModel? {
         val uid = Firebase.auth.currentUser?.uid ?: return null
         val docRef = Firebase.firestore.collection("users").document(uid)
@@ -102,28 +101,6 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
         }
     }
 
-    suspend fun updateShoppingList(list: ShoppingListModel): Boolean {
-        val uid = Firebase.auth.currentUser?.uid ?: return false
-        return try {
-            db.collection("users").document(uid)
-                .collection("shoppingLists").document(list.id)
-                .set(list).await()
-            true
-        } catch (e: Exception) {
-            false
-        }
-    }
-
-    suspend fun deleteShoppingList(id: String): Boolean {
-        return try {
-            db.collection("users").document(uid)
-                .collection("shoppingLists").document(id).delete().await()
-            true
-        } catch (e: Exception) {
-            false
-        }
-    }
-
     suspend fun deleteItemFromList(listId: String, itemId: String): Boolean {
         return try {
             shoppingListItemsRef(listId).document(itemId).delete().await()
@@ -133,7 +110,7 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
         }
     }
 
-    suspend fun addIngredientToShoppingListItemCollection(listId: String, ingredient: ShoppingItemModel): Boolean {
+    suspend fun addIngredientToShoppingListItemCollection(listId: String, ingredient: ShoppingIngredientModel): Boolean {
         return try {
             val itemsRef = shoppingListItemsRef(listId)
 
@@ -149,7 +126,7 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
             } else {
                 // Si el ingrediente ya existe, actualizamos su cantidad
                 val existingItemDoc = snapshot.documents.first()
-                val existingItem = existingItemDoc.toObject(ShoppingItemModel::class.java)!!
+                val existingItem = existingItemDoc.toObject(ShoppingIngredientModel::class.java)!!
 
                 // Actualizamos la cantidad del ingrediente
                 val updatedIngredient = existingItem.copy(quantity = existingItem.quantity + ingredient.quantity)
@@ -161,6 +138,23 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
             false
         }
     }
+
+    suspend fun updateItemInShoppingList(
+        listId: String,
+        item: ShoppingIngredientModel
+    ): Boolean {
+        return try {
+            shoppingListItemsRef(listId)
+                .document(item.id)
+                .set(item)
+                .await()
+            true
+        } catch (e: Exception) {
+            Log.e("ShoppingListDataSource", "Error al actualizar item: ${e.message}")
+            false
+        }
+    }
+
 
 }
 
