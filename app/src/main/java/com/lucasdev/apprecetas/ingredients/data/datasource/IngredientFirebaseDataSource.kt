@@ -105,6 +105,7 @@ class IngredientFirebaseDataSource @Inject constructor( private val dataSourcePa
         return try {
             ref.set(ingredient).await()
             Log.d("IngredientFirebaseDataSource", "Ingredient updated: $ingredient")
+            dataSourcePantry.updateIngredientReferencesInPantries(ingredient)
             true
         } catch (e: Exception) {
             Log.e("IngredientFirebaseDataSource", "Error updating ingredient", e)

@@ -107,7 +107,6 @@ class PantryIngredientsViewModel @Inject constructor(
         }
     }
 
-
     private fun loadUserPantryIngredients() {
         viewModelScope.launch {
             _isLoading.value = true

@@ -4,6 +4,7 @@ import android.util.Log
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
+import com.lucasdev.apprecetas.ingredients.domain.model.IngredientModel
 import com.lucasdev.apprecetas.ingredients.domain.model.PantryIngredientModel
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -45,6 +46,7 @@ class PantryIngredientFirebaseDataSource @Inject constructor() {
             null
         }
     }
+
     suspend fun getIngredientByIngredientId(ingredientId: String): PantryIngredientModel? {
         return suspendCoroutine { cont ->
             userPantryRef()
@@ -54,7 +56,8 @@ class PantryIngredientFirebaseDataSource @Inject constructor() {
                 .addOnSuccessListener { querySnapshot ->
                     val doc = querySnapshot.documents.firstOrNull()
                     if (doc != null) {
-                        val ingredient = doc.toObject(PantryIngredientModel::class.java)?.copy(id = doc.id)
+                        val ingredient =
+                            doc.toObject(PantryIngredientModel::class.java)?.copy(id = doc.id)
                         cont.resume(ingredient)
                     } else {
                         cont.resume(null)
@@ -66,6 +69,32 @@ class PantryIngredientFirebaseDataSource @Inject constructor() {
         }
     }
 
+    suspend fun updateIngredientReferencesInPantries(updatedIngredient: IngredientModel) {
+        try {
+            val usersSnapshot = db.collection("users").get().await()
+
+            for (userDoc in usersSnapshot.documents) {
+                val inventoryRef = userDoc.reference.collection("inventory")
+
+                val matchingDocs = inventoryRef
+                    .whereEqualTo("ingredientId", updatedIngredient.id)
+                    .get()
+                    .await()
+
+                for (doc in matchingDocs.documents) {
+                    val updateMap = mapOf(
+                        "category" to updatedIngredient.category,
+                        "unit" to updatedIngredient.unit
+                    )
+                    doc.reference.update(updateMap).await()
+                }
+            }
+
+            Log.d("PantryIngredientDataSource", "Updated ingredient references in all pantries.")
+        } catch (e: Exception) {
+            Log.e("PantryIngredientDataSource", "Error updating references in pantries", e)
+        }
+    }
 
     suspend fun addIngredientToPantry(userIngredient: PantryIngredientModel): PantryIngredientModel =
         suspendCoroutine { cont ->
@@ -99,7 +128,6 @@ class PantryIngredientFirebaseDataSource @Inject constructor() {
                 .addOnFailureListener { cont.resumeWithException(it) }
         }
 
-
     //todo por probar su funcionamiento
     //todo este método será para añadir de golpe muchos ingredientes que vienen de la shopping list
     suspend fun addIngredientsToPantry(userIngredients: List<PantryIngredientModel>): List<PantryIngredientModel> =
@@ -124,7 +152,6 @@ class PantryIngredientFirebaseDataSource @Inject constructor() {
                 }
         }
 
-
     suspend fun updateIngredientPantry(ingredient: PantryIngredientModel): Boolean {
 
         val docRef = userPantryRef()
@@ -137,7 +164,6 @@ class PantryIngredientFirebaseDataSource @Inject constructor() {
         }
     }
 
-
     suspend fun deleteIngredientFromPantry(id: String): Boolean = suspendCoroutine { cont ->
 
         userPantryRef()
@@ -147,7 +173,7 @@ class PantryIngredientFirebaseDataSource @Inject constructor() {
             .addOnFailureListener { cont.resume(false) }
     }
 
-     suspend fun deleteIngredientFromPantries(ingredientId: String) {
+    suspend fun deleteIngredientFromPantries(ingredientId: String) {
         val pantryRef = userPantryRef()
 
         try {
@@ -183,7 +209,10 @@ class PantryIngredientFirebaseDataSource @Inject constructor() {
                 }
             }
 
-            Log.d("IngredientFirebaseDataSource", "Deleted ingredient from all pantries: $ingredientId")
+            Log.d(
+                "IngredientFirebaseDataSource",
+                "Deleted ingredient from all pantries: $ingredientId"
+            )
 
         } catch (e: Exception) {
             Log.e("IngredientFirebaseDataSource", "Error deleting from all user pantries", e)
