@@ -1,19 +1,15 @@
 package com.lucasdev.apprecetas.shopping.data.datasource
 
-import android.annotation.SuppressLint
 import android.util.Log
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.firestore
+import com.lucasdev.apprecetas.ingredients.domain.model.IngredientModel
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingItemModel
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingListModel
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
-import kotlin.coroutines.suspendCoroutine
 
 class ShoppingListFirebaseDataSource @Inject constructor() {
     private val db = Firebase.firestore
@@ -57,6 +53,40 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
             false
         }
     }
+
+    suspend fun updateIngredientReferencesInShoppingLists(updatedIngredient: IngredientModel) {
+        try {
+            val usersSnapshot = db.collection("users").get().await()
+
+            for (userDoc in usersSnapshot.documents) {
+                val shoppingListsRef = userDoc.reference.collection("shoppingLists")
+                val shoppingListsSnapshot = shoppingListsRef.get().await()
+
+                for (listDoc in shoppingListsSnapshot.documents) {
+                    val itemsRef = listDoc.reference.collection("items")
+
+                    val matchingItems = itemsRef
+                        .whereEqualTo("ingredientId", updatedIngredient.id)
+                        .get()
+                        .await()
+
+                    for (itemDoc in matchingItems.documents) {
+                        val updateMap = mapOf(
+                            "category" to updatedIngredient.category,
+                            "unit" to updatedIngredient.unit,
+                            "name" to updatedIngredient.name
+                        )
+                        itemDoc.reference.update(updateMap).await()
+                    }
+                }
+            }
+
+            Log.d("ShoppingListDataSource", "Updated ingredient references in all shopping lists.")
+        } catch (e: Exception) {
+            Log.e("ShoppingListDataSource", "Error updating references in shopping lists", e)
+        }
+    }
+
 
     suspend fun addShoppingList(list: ShoppingListModel): ShoppingListModel? {
         val uid = Firebase.auth.currentUser?.uid ?: return null
@@ -131,7 +161,6 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
             false
         }
     }
-
 
 }
 

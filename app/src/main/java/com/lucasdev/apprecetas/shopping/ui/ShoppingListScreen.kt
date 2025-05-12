@@ -24,6 +24,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +35,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
 import com.lucasdev.apprecetas.general.ui.dropDownSelector.DropdownSelector
 import com.lucasdev.apprecetas.general.ui.scaffold.AppScaffold
@@ -53,15 +57,25 @@ fun ShoppingListScreen(
     val loading = shoppingListViewModel.isLoading.collectAsState()
     val error = shoppingListViewModel.errorMessage.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
-    val activeListItems = shoppingListViewModel.activeListItems.collectAsState()
+
+    val sections = shoppingListViewModel.shoppingItemSections.collectAsState()
     val ingredients = shoppingListViewModel.ingredients.collectAsState()
     val categories = shoppingListViewModel.categories.collectAsState()
     val activeListId = shoppingListViewModel.activeListId.collectAsState().value
+    val lifecycleOwner = LocalLifecycleOwner.current
 
 
-
-
-
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                shoppingListViewModel.refreshShoppingList()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     AppScaffold(
         userName = userName.value,
@@ -84,55 +98,69 @@ fun ShoppingListScreen(
                 )
             }
 
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
+                Text(
+                    text = "Lista de la Compra",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(16.dp)
+                )
 
-            activeListItems.let { list ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                ) {
-                    Text(
-                        text = "Lista de la Compra",
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                    if (list.value.isNotEmpty()) {
-                        LazyColumn(modifier = Modifier.weight(1f)) {
-                            items(list.value) { item ->
+                if (sections.value.any { it.items.isNotEmpty() }) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 8.dp)
+                    ) {
+                        sections.value.forEach { section ->
+                            item {
+                                Text(
+                                    text = section.category,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier
+                                        .padding(vertical = 8.dp)
+                                )
+                            }
+
+                            items(section.items) { item ->
                                 ShoppingItemRow(
                                     item = item,
                                     onCheckedChange = { isChecked ->
-                                       activeListItems.let {
-                                           if (activeListId != null) {
-                                               shoppingListViewModel.toggleItemChecked(activeListId,item.id,isChecked)
-                                           }
-                                       }
+                                        if (activeListId != null) {
+                                            shoppingListViewModel.toggleItemChecked(
+                                                activeListId,
+                                                item.id,
+                                                isChecked
+                                            )
+                                        }
                                     }
                                 )
                             }
                         }
-
-                        Button(
-                            onClick = {shoppingListViewModel.moveCheckedItemsToPantry(pantryIngredientsViewModel) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp)
-                        ) {
-                            Text("Finalizar Compra")
-                        }
-                    } else {
-
-                        Text(
-                            text = "No hay ingredientes en esta lista.",
-                            modifier = Modifier
-                                .padding(16.dp)
-                        )
                     }
 
+                    Button(
+                        onClick = {
+                            shoppingListViewModel.moveCheckedItemsToPantry(pantryIngredientsViewModel)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Text("Finalizar Compra")
+                    }
+
+                } else {
+                    Text(
+                        text = "No hay ingredientes en esta lista.",
+                        modifier = Modifier.padding(16.dp)
+                    )
                 }
             }
 
-            // Add ingredient dialog
             if (showAddDialog) {
                 AddShoppingListIngredientDialog(
                     categories = categories.value,
@@ -148,6 +176,7 @@ fun ShoppingListScreen(
         }
     )
 }
+
 
 @Composable
 fun ShoppingItemRow(

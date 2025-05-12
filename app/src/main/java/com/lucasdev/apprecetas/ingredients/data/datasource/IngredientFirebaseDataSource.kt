@@ -5,12 +5,13 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
 import com.lucasdev.apprecetas.ingredients.domain.model.IngredientModel
+import com.lucasdev.apprecetas.shopping.data.datasource.ShoppingListFirebaseDataSource
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-class IngredientFirebaseDataSource @Inject constructor( private val dataSourcePantry: PantryIngredientFirebaseDataSource) {
+class IngredientFirebaseDataSource @Inject constructor( private val dataSourcePantry: PantryIngredientFirebaseDataSource,private val dataSourceShoppingList: ShoppingListFirebaseDataSource) {
 
     private val db = Firebase.firestore
     private val auth = Firebase.auth
@@ -106,6 +107,7 @@ class IngredientFirebaseDataSource @Inject constructor( private val dataSourcePa
             ref.set(ingredient).await()
             Log.d("IngredientFirebaseDataSource", "Ingredient updated: $ingredient")
             dataSourcePantry.updateIngredientReferencesInPantries(ingredient)
+            dataSourceShoppingList.updateIngredientReferencesInShoppingLists(ingredient)
             true
         } catch (e: Exception) {
             Log.e("IngredientFirebaseDataSource", "Error updating ingredient", e)

@@ -14,6 +14,7 @@ import com.lucasdev.apprecetas.ingredients.domain.usecase.GetIngredientsUseCase
 import com.lucasdev.apprecetas.ingredients.domain.usecase.UpdateUserPantryIngredientUseCase
 import com.lucasdev.apprecetas.ingredients.ui.PantryIngredientsViewModel
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingItemModel
+import com.lucasdev.apprecetas.shopping.domain.model.ShoppingItemSection
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingListModel
 import com.lucasdev.apprecetas.shopping.domain.usecase.AddIngredientToShoppingListUseCase
 import com.lucasdev.apprecetas.shopping.domain.usecase.AddShoppingListUseCase
@@ -69,6 +70,9 @@ class ShoppingListViewModel @Inject constructor(
     private val _activeListId = MutableStateFlow<String?>(null)
     val activeListId: StateFlow<String?> = _activeListId
 
+    private val _shoppingItemSections = MutableStateFlow<List<ShoppingItemSection>>(emptyList())
+    val shoppingItemSections: StateFlow<List<ShoppingItemSection>> = _shoppingItemSections
+
 
 
 
@@ -79,6 +83,12 @@ class ShoppingListViewModel @Inject constructor(
         ensureActiveListExists()
         loadActiveListItems()
         loadIngredientsAndCategories()
+    }
+    fun refreshShoppingList() {
+        viewModelScope.launch {
+            loadLists()
+            loadIngredientsAndCategories()
+        }
     }
     private fun loadIngredientsAndCategories() {
         viewModelScope.launch {
@@ -152,7 +162,20 @@ class ShoppingListViewModel @Inject constructor(
             try {
                 val activeList = _shoppingLists.value.firstOrNull()
                 if (activeList != null && activeList.id.isNotEmpty()) {
-                    _activeListItems.value = getItemsForList(activeList.id)
+                    val items = getItemsForList(activeList.id)
+
+                    val grouped = items
+                        .groupBy { it.category.name}
+                        .map { (category, itemsInCategory) ->
+                            ShoppingItemSection(
+                                category = category,
+                                items = itemsInCategory.sortedBy { it.name.lowercase() }
+                            )
+                        }
+                        .sortedBy { it.category.lowercase() }
+
+                    _activeListItems.value = items // por si lo necesitas sin agrupar
+                    _shoppingItemSections.value = grouped
                 }
             } catch (e: Exception) {
                 _errorMessage.value = "Error al cargar los ingredientes: ${e.message}"
@@ -161,6 +184,7 @@ class ShoppingListViewModel @Inject constructor(
             }
         }
     }
+
 
 
     fun getUserName() {
@@ -237,12 +261,24 @@ class ShoppingListViewModel @Inject constructor(
             try {
                 val success = updateIngredientCheckedStatus(listId, itemId, isChecked)
                 if (success) {
-                    // Actualiza el StateFlow local
-                    _activeListItems.update { items ->
-                        items.map {
-                            if (it.id == itemId) it.copy(checked = isChecked) else it
-                        }
+                    // Actualiza lista plana
+                    val updatedItems = _activeListItems.value.map {
+                        if (it.id == itemId) it.copy(checked = isChecked) else it
                     }
+                    _activeListItems.value = updatedItems
+
+                    // Vuelve a agrupar por categoría
+                    val grouped = updatedItems
+                        .groupBy { it.category.name }
+                        .map { (category, itemsInCategory) ->
+                            ShoppingItemSection(
+                                category = category,
+                                items = itemsInCategory.sortedBy { it.name.lowercase() }
+                            )
+                        }
+                        .sortedBy { it.category.lowercase() }
+
+                    _shoppingItemSections.value = grouped
                 } else {
                     _errorMessage.value = "No se pudo actualizar el ítem"
                 }
@@ -251,6 +287,7 @@ class ShoppingListViewModel @Inject constructor(
             }
         }
     }
+
 
     fun moveCheckedItemsToPantry(pantryIngredientsViewModel: PantryIngredientsViewModel) {
         viewModelScope.launch {
