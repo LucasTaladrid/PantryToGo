@@ -26,3 +26,11 @@ data class ShoppingItemSection(
     val items: List<ShoppingIngredientModel>
 )
 
+data class ShoppingHistoryModel(
+    val id: String = "",
+    val title: String = "",
+    val date: Timestamp = Timestamp.now(),
+    val items: List<ShoppingIngredientModel> = emptyList()
+)
+
+

@@ -3,6 +3,7 @@ package com.lucasdev.apprecetas.shopping.ui
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.lucasdev.apprecetas.ingredients.domain.model.CategoryModel
@@ -11,6 +12,7 @@ import com.lucasdev.apprecetas.ingredients.domain.usecase.GetCategoriesUseCase
 import com.lucasdev.apprecetas.ingredients.domain.usecase.GetIngredientsUseCase
 import com.lucasdev.apprecetas.ingredients.domain.usecase.UpdateUserPantryIngredientUseCase
 import com.lucasdev.apprecetas.ingredients.ui.PantryIngredientsViewModel
+import com.lucasdev.apprecetas.shopping.domain.model.ShoppingHistoryModel
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingIngredientModel
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingItemSection
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingListModel
@@ -19,6 +21,7 @@ import com.lucasdev.apprecetas.shopping.domain.usecase.AddShoppingListUseCase
 import com.lucasdev.apprecetas.shopping.domain.usecase.DeleteItemFromShoppingListUseCase
 import com.lucasdev.apprecetas.shopping.domain.usecase.GetItemsForListUseCase
 import com.lucasdev.apprecetas.shopping.domain.usecase.GetShoppingListsUseCase
+import com.lucasdev.apprecetas.shopping.domain.usecase.SaveShoppingHistoryUseCase
 import com.lucasdev.apprecetas.shopping.domain.usecase.UpdateIngredientCheckedStatusUseCase
 import com.lucasdev.apprecetas.shopping.domain.usecase.UpdateItemInShoppingListUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,7 +40,8 @@ class ShoppingListViewModel @Inject constructor(
     private val getItemsForList: GetItemsForListUseCase,
     private val updateIngredientCheckedStatus: UpdateIngredientCheckedStatusUseCase,
     private val deleteItemFromShoppingListUseCase: DeleteItemFromShoppingListUseCase,
-    private val updateItemInShoppingListUseCase: UpdateItemInShoppingListUseCase
+    private val updateItemInShoppingListUseCase: UpdateItemInShoppingListUseCase,
+    private val saveShoppingHistoryUseCase: SaveShoppingHistoryUseCase,
 ) : ViewModel() {
 
     private val _ingredients = MutableStateFlow<List<IngredientModel>>(emptyList())
@@ -280,6 +284,17 @@ class ShoppingListViewModel @Inject constructor(
             if (checkedItems.isEmpty()) {
                 _errorMessage.value = "No hay elementos marcados"
                 return@launch
+            }
+            val historyEntry = ShoppingHistoryModel(
+                title = "Transferencia del ${activeList.date.toDate().toLocaleString()}",
+                date = Timestamp.now(),
+                items = checkedItems // todos los marcados
+            )
+
+            try {
+                saveShoppingHistoryUseCase(historyEntry)
+            } catch (e: Exception) {
+                Log.e("ShoppingListViewModel", "Error guardando historial: ${e.message}")
             }
 
             checkedItems.forEach { item ->

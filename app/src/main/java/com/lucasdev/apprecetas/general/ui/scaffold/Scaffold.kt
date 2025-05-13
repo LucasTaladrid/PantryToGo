@@ -93,7 +93,7 @@ fun MyModalDrawer(
         Routes.MyIngredients.route to "Mis Ingredientes",
         "mis_recetas" to "Mis recetas",
         "recetas_pendientes" to "Recetas pendientes",
-        "ultimas_compras" to "Últimas compras",
+        Routes.MyShoppingHistory.route to "Últimas compras",
         "ajustes" to "Ajustes"
     )
 

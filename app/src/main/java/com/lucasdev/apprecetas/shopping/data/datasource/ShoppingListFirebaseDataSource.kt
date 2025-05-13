@@ -2,13 +2,17 @@ package com.lucasdev.apprecetas.shopping.data.datasource
 
 import android.util.Log
 import com.google.firebase.Firebase
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.firestore
 import com.lucasdev.apprecetas.ingredients.domain.model.IngredientModel
+import com.lucasdev.apprecetas.shopping.domain.model.ShoppingHistoryModel
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingIngredientModel
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingListModel
 import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
+import java.util.Date
 import javax.inject.Inject
 
 class ShoppingListFirebaseDataSource @Inject constructor() {
@@ -139,10 +143,7 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
         }
     }
 
-    suspend fun updateItemInShoppingList(
-        listId: String,
-        item: ShoppingIngredientModel
-    ): Boolean {
+    suspend fun updateItemInShoppingList(listId: String, item: ShoppingIngredientModel): Boolean {
         return try {
             shoppingListItemsRef(listId)
                 .document(item.id)
@@ -154,6 +155,94 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
             false
         }
     }
+
+    //todo comprobar que funciona que se almacenen solo 5 historiales, cambiar casos de uso y repositorio
+    suspend fun saveShoppingHistory(history: ShoppingHistoryModel, maxHistory: Int = 5): ShoppingHistoryModel? {
+        val collectionRef = db.collection("users")
+            .document(uid)
+            .collection("shoppingHistory")
+
+        val newDocRef = collectionRef.document()
+        val historyWithoutItems = history.copy(id = newDocRef.id, items = emptyList()) // Guardamos solo metadatos
+
+        return try {
+            // 1. Guarda la metadata sin los items
+            newDocRef.set(historyWithoutItems).await()
+
+            // 2. Guarda los items en una subcolección
+            val itemsCollection = newDocRef.collection("items")
+            history.items.forEach { item ->
+                val docRef = itemsCollection.document()
+                val itemWithId = item.copy(id = docRef.id)
+                docRef.set(itemWithId).await()
+            }
+
+            // 3. Elimina historiales antiguos si hay más de maxHistory
+            val allHistories = collectionRef
+                .orderBy("date", Query.Direction.DESCENDING)
+                .get()
+                .await()
+                .documents
+
+            if (allHistories.size > maxHistory) {
+                val historiesToDelete = allHistories.drop(maxHistory)
+                historiesToDelete.forEach { it.reference.delete().await() }
+            }
+
+            history.copy(id = newDocRef.id) // retornamos con el ID asignado
+        } catch (e: Exception) {
+            Log.e("ShoppingListDataSource", "Error al guardar historial: ${e.message}")
+            null
+        }
+    }
+
+
+    suspend fun getRecentShoppingHistory(limit: Long = 5): List<ShoppingHistoryModel> {
+        return db.collection("users")
+            .document(uid)
+            .collection("shoppingHistory")
+            .orderBy("date", Query.Direction.DESCENDING)
+            .limit(limit)
+            .get()
+            .await()
+            .documents
+            .mapNotNull { it.toObject(ShoppingHistoryModel::class.java) }
+    }
+
+    suspend fun deleteShoppingHistoryById(historyId: String): Boolean {
+        return try {
+            db.collection("users")
+                .document(uid)
+                .collection("shoppingHistory")
+                .document(historyId)
+                .delete()
+                .await()
+            true
+        } catch (e: Exception) {
+            Log.e("ShoppingListDataSource", "Error al eliminar historial: ${e.message}")
+            false
+        }
+    }
+
+    suspend fun getItemsForHistory(historyId: String): List<ShoppingIngredientModel> {
+        return try {
+            db.collection("users")
+                .document(uid)
+                .collection("shoppingHistory")
+                .document(historyId)
+                .collection("items")
+                .get()
+                .await()
+                .documents
+                .mapNotNull { it.toObject(ShoppingIngredientModel::class.java)?.copy(id = it.id) }
+        } catch (e: Exception) {
+            Log.e("ShoppingListDataSource", "Error al obtener items del historial: ${e.message}")
+            emptyList()
+        }
+    }
+
+
+
 
 
 }
