@@ -3,6 +3,7 @@ package com.lucasdev.apprecetas.shopping.ui
 import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -35,12 +36,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
+import com.lucasdev.apprecetas.general.ui.appButtons.AppButton
+import com.lucasdev.apprecetas.general.ui.appTextFields.AppOutlinedTextField
+import com.lucasdev.apprecetas.general.ui.appTextFields.AppTextField
 import com.lucasdev.apprecetas.general.ui.dropDownSelector.DropdownSelector
 import com.lucasdev.apprecetas.general.ui.scaffold.AppScaffold
 import com.lucasdev.apprecetas.ingredients.domain.model.CategoryModel
@@ -152,21 +162,36 @@ fun ShoppingListScreen(
                             }
                         }
                     }
-                    Button(
+                    AppButton(
                         onClick = {
                             shoppingListViewModel.moveCheckedItemsToPantry(pantryIngredientsViewModel)
                         },
+                        text = "Finalizar Compra",
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxWidth(0.5f)
                             .padding(16.dp)
-                    ) {
-                        Text("Finalizar Compra")
-                    }
+                    )
 
                 } else {
                     Text(
-                        text = "No hay ingredientes en esta lista.",
-                        modifier = Modifier.padding(16.dp)
+                        text = buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp)) {
+                                append("¡Hola, está es tú lista de la compra!\n\n")
+                            }
+                            withStyle(style = SpanStyle(fontSize = 16.sp)) {
+                                append("Aquí podrás gestionar fácilmente los ingredientes que necesitas comprar.\n\n")
+                                append("Usa el botón ➕ para añadir un nuevo ingrediente a tu lista.\n")
+                                append("Marca los ingredientes que ya hayas comprado.\n")
+                                append(" Cuando termines, pulsa 'Finalizar Compra' y los ingredientes marcados se moverán automáticamente a tu despensa.")
+                                append("Puedes consular las últimas compras en la pantalla 'Últimas compras'.")
+
+                            }
+                        },
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Start
                     )
                 }
             }
@@ -191,6 +216,7 @@ fun ShoppingListScreen(
                         Text("Selecciona una acción para el ingrediente:\n\n${selectedItem!!.name}")
                     },
                     confirmButton = {
+
                         TextButton(onClick = {
                             showEditDeleteChoiceDialog = false
                             showEditDialog = true
@@ -212,13 +238,13 @@ fun ShoppingListScreen(
                 EditShoppingItemDialog(
                     item = selectedItem!!,
                     onDismiss = { showEditDialog = false },
-                    onDelete = {
-                        showEditDialog = false
-                        showDeleteConfirmDialog = true
-                    },
                     onSave = { updated ->
                         shoppingListViewModel.updateItem(updated)
                         showEditDialog = false
+                    },
+                    onRequestDelete = {
+                        showEditDialog = false
+                        showDeleteConfirmDialog = true
                     }
                 )
             }
@@ -233,8 +259,6 @@ fun ShoppingListScreen(
                     onDismiss = { showDeleteConfirmDialog = false }
                 )
             }
-
-
         }
     )
 }
@@ -292,37 +316,43 @@ fun AddShoppingListIngredientDialog(
                 it.name.contains(query, ignoreCase = true)
     }
 
+    val showIngredientSearch = selectedCategory != null
+    val showQuantityInput = selectedIngredient != null
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Añadir ingrediente a la lista") },
         text = {
             Column {
+                // Dropdown con opción inicial no seleccionable
                 DropdownSelector(
                     label = "Categoría",
-                    options = categories,
-                    selected = selectedCategory ?: categories.firstOrNull() ?: CategoryModel(""),
+                    options = listOf(null) + categories,
+                    selected = selectedCategory,
                     onSelected = {
-                        selectedCategory = it
-                        selectedIngredient = null
-                        query = ""
+                        if (it != null) {
+                            selectedCategory = it
+                            selectedIngredient = null
+                            query = ""
+                        }
                     },
-                    labelMapper = { it.name }
+                    labelMapper = { it?.name ?: "Selecciona una categoría" }
                 )
 
                 Spacer(Modifier.height(12.dp))
 
-                OutlinedTextField(
+                // Buscador de ingredientes
+                AppOutlinedTextField(
                     value = query,
                     onValueChange = {
                         query = it
                         selectedIngredient = null
                     },
-                    label = { Text("Buscar ingrediente") },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = selectedCategory != null
+                    label = "Buscar ingrediente",
+                    enabled = showIngredientSearch
                 )
 
-                if (selectedCategory != null && selectedIngredient == null && query.isNotBlank()) {
+                if (showIngredientSearch && selectedIngredient == null && query.isNotBlank()) {
                     LazyColumn(modifier = Modifier.heightIn(max = 150.dp)) {
                         items(filteredIngredients) { ingredient ->
                             Text(
@@ -341,16 +371,17 @@ fun AddShoppingListIngredientDialog(
 
                 Spacer(Modifier.height(12.dp))
 
-                OutlinedTextField(
+                // Cantidad
+                AppOutlinedTextField(
                     value = quantity,
                     onValueChange = { quantity = it },
-                    label = { Text("Cantidad") },
-                    keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = selectedIngredient != null
+                    label = "Cantidad",
+                    keyboardType = KeyboardType.Number,
+                    enabled = showQuantityInput
                 )
 
                 Spacer(Modifier.height(8.dp))
+
                 Text(
                     text = "¿No encuentras el ingrediente? Regístralo en 'Mis ingredientes'",
                     style = MaterialTheme.typography.bodySmall,
@@ -361,34 +392,33 @@ fun AddShoppingListIngredientDialog(
             }
         },
         confirmButton = {
-            TextButton(
-                onClick = {
-                    val qty = quantity.toDoubleOrNull()
-                    if (selectedIngredient != null && qty != null && qty > 0) {
-                        Log.d("Dialog", "Confirm clicked with: $selectedIngredient x $qty")
-                        onConfirm(selectedIngredient!!, qty)
-                    }else{
-                        Log.w("Dialog", "Confirm failed: ingrediente o cantidad inválida")
-                    }
-                },
-                enabled = selectedIngredient != null && quantity.toDoubleOrNull() != null
-            ) {
-                Text("Añadir")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancelar")
+            Row {
+                TextButton(onClick = onDismiss) {
+                    Text("Cancelar")
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                TextButton(
+                    onClick = {
+                        val qty = quantity.toDoubleOrNull()
+                        if (selectedIngredient != null && qty != null && qty > 0) {
+                            onConfirm(selectedIngredient!!, qty)
+                        }
+                    },
+                    enabled = selectedIngredient != null && quantity.toDoubleOrNull() != null
+                ) {
+                    Text("Añadir")
+                }
             }
         }
     )
 }
 
+
 @Composable
 fun EditShoppingItemDialog(
     item: ShoppingIngredientModel,
     onDismiss: () -> Unit,
-    onDelete: () -> Unit,
+    onRequestDelete: () -> Unit,
     onSave: (ShoppingIngredientModel) -> Unit
 ) {
     var quantity by remember { mutableStateOf(item.quantity.toString()) }
@@ -411,12 +441,15 @@ fun EditShoppingItemDialog(
             }
         },
         confirmButton = {
-            Button(onClick = {
-                val updated = item.copy(
-                    quantity = quantity.toDoubleOrNull() ?: item.quantity
-                )
-                onSave(updated)
-            }) {
+            Button (
+
+                onClick = {
+                    val updated = item.copy(
+                        quantity = quantity.toDoubleOrNull() ?: item.quantity
+                    )
+                    onSave(updated)
+                }
+            ){
                 Text("Confirmar")
             }
         },
@@ -426,7 +459,7 @@ fun EditShoppingItemDialog(
                     Text("Cancelar")
                 }
                 Spacer(Modifier.width(8.dp))
-                TextButton(onClick = onDelete) {
+                TextButton(onClick = onRequestDelete) {
                     Text("Borrar")
                 }
             }

@@ -20,8 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.lucasdev.apprecetas.general.ui.appButton.AppButton
-import com.lucasdev.apprecetas.general.ui.appTextField.AppTextField
+import com.lucasdev.apprecetas.general.ui.appButtons.AppButton
+import com.lucasdev.apprecetas.general.ui.appTextFields.AppTextField
 
 //todo cambiar colores y fondo
 @Composable

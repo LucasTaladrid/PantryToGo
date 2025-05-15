@@ -1,4 +1,4 @@
-package com.lucasdev.apprecetas.general.ui.appTextField
+package com.lucasdev.apprecetas.general.ui.appTextFields
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions

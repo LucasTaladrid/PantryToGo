@@ -25,7 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.lucasdev.apprecetas.general.ui.bottomBar.BottomBarNavigation
-import com.lucasdev.apprecetas.general.ui.fabButton.FAB
+import com.lucasdev.apprecetas.general.ui.appButtons.FAB
 import com.lucasdev.apprecetas.general.ui.topBar.TopBar
 import com.lucasdev.apprecetas.ui.navigation.Routes
 import kotlinx.coroutines.launch

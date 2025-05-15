@@ -91,8 +91,8 @@ class ShoppingListViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                _ingredients.value = getIngredientsUseCase()
-                _categories.value = getCategoriesUseCase()
+                _ingredients.value = getIngredientsUseCase().sortedBy { it.name }
+                _categories.value = getCategoriesUseCase().sortedBy { it.name }
             } catch (e: Exception) {
                 _errorMessage.value = e.message
             } finally {

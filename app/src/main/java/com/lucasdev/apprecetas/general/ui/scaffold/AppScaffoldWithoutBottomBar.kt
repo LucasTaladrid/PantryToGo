@@ -20,9 +20,8 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.lucasdev.apprecetas.general.ui.fabButton.FAB
+import com.lucasdev.apprecetas.general.ui.appButtons.FAB
 import kotlinx.coroutines.launch
 
 @Composable

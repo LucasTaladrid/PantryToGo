@@ -37,40 +37,60 @@ class LoginScreenViewModel @Inject constructor(private val auth:FirebaseAuth): V
         _isLoginEnable.value=enableLogin(email, password)
     }
 
-    fun loginUser(email: String, password: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+    fun loginUser(
+        email: String,
+        password: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
         viewModelScope.launch {
             _isLoading.value = true
-            auth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        val userId = auth.currentUser?.uid
-                        if (userId != null) {
-                            // Verificamos si el usuario es administrador
-                            val userRef = Firebase.firestore.collection("users").document(userId)
-                            userRef.get().addOnSuccessListener { documentSnapshot ->
-                                if (documentSnapshot.exists()) {
-                                    // Obtener el valor de isAdmin
-                                    val isAdmin = documentSnapshot.getBoolean("isAdmin") ?: false
-                                    // Guardamos el estado en el ViewModel
-                                    _isAdmin.value = isAdmin
-                                    _isLoading.value = false
-                                    onSuccess()
 
-
+            // Verificamos si el correo está registrado en la colección "users"
+            Firebase.firestore.collection("users")
+                .whereEqualTo("email", email)
+                .get()
+                .addOnSuccessListener { documents ->
+                    if (!documents.isEmpty) {
+                        // El correo existe, intentamos iniciar sesión
+                        auth.signInWithEmailAndPassword(email, password)
+                            .addOnCompleteListener { task ->
+                                _isLoading.value = false
+                                if (task.isSuccessful) {
+                                    val userId = auth.currentUser?.uid
+                                    if (userId != null) {
+                                        Firebase.firestore.collection("users").document(userId)
+                                            .get()
+                                            .addOnSuccessListener { documentSnapshot ->
+                                                if (documentSnapshot.exists()) {
+                                                    val isAdmin =
+                                                        documentSnapshot.getBoolean("isAdmin") ?: false
+                                                    _isAdmin.value = isAdmin
+                                                    onSuccess()
+                                                } else {
+                                                    onError("Usuario no encontrado")
+                                                }
+                                            }
+                                            .addOnFailureListener {
+                                                onError("Error al verificar el usuario")
+                                            }
+                                    }
                                 } else {
-                                    onError("Usuario no encontrado")
+                                    onError("Contraseña incorrecta")
                                 }
-                            }.addOnFailureListener {
-                                onError("Error al verificar el usuario")
                             }
-                        }
                     } else {
                         _isLoading.value = false
-                        onError(task.exception?.message ?: "Error al iniciar sesión")
+                        onError("El usuario no existe")
                     }
+                }
+                .addOnFailureListener {
+                    _isLoading.value = false
+                    onError("Error al verificar el usuario")
                 }
         }
     }
+
 
 
     private fun enableLogin(email: String, password: String) =

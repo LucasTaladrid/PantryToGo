@@ -1,7 +1,6 @@
 package com.lucasdev.apprecetas.shopping.ui
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.runtime.Composable
@@ -23,11 +22,14 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import java.time.format.DateTimeFormatter
+import androidx.compose.ui.unit.sp
 
-
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun MyShoppingHistoryScreen(myShoppingHistoryViewModel: MyShoppingHistoryViewModel, back: () -> Unit) {
     val history by myShoppingHistoryViewModel.history.collectAsState()
@@ -38,53 +40,73 @@ fun MyShoppingHistoryScreen(myShoppingHistoryViewModel: MyShoppingHistoryViewMod
         title = "Historial de compras",
         onBackClick = back,
         content = { innerPadding ->
-            LazyColumn(
-                contentPadding = innerPadding,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(history) { historyItem ->
-                    val isExpanded = expandedItems.contains(historyItem.id)
+            if (history.isEmpty()) {
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp)) {
+                            append("Estas son tus últimas compras, aquí puedes ver la fecha y qué ingredientes y qué cantidades has ido comprando a lo largo del tiempo.\n\n")
+                        }
+                        withStyle(style = SpanStyle(fontSize = 16.sp)) {
+                            append("Pulsa sobre la fecha para desplegar la lista.\n")
+                            append("Si quieres borrar una lista, pulsa sobre eliminar.\n")
+                            append("Ten en cuenta que solo se guardan tus últimas 5 compras.\n")
+                        }
+                    },
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .padding(innerPadding)
+                        .fillMaxWidth(),
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Start
+                )
+            } else {
+                LazyColumn(
+                    contentPadding = innerPadding,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(history) { historyItem ->
+                        val isExpanded = expandedItems.contains(historyItem.id)
 
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .clickable { myShoppingHistoryViewModel.toggleExpanded(historyItem.id) }
-                            .padding(16.dp)
-                    ) {
-                        Text(
-                            text = myShoppingHistoryViewModel.formatTimestamp(historyItem.date),
-                            style = MaterialTheme.typography.titleMedium
-                        )
+                        Column(
+                            Modifier
+                                .fillMaxWidth()
+                                .clickable { myShoppingHistoryViewModel.toggleExpanded(historyItem.id) }
+                                .padding(16.dp)
+                        ) {
+                            Text(
+                                text = myShoppingHistoryViewModel.formatTimestamp(historyItem.date),
+                                style = MaterialTheme.typography.titleMedium
+                            )
 
+                            AnimatedVisibility(visible = isExpanded) {
+                                val itemsForThisHistory = historyItems[historyItem.id].orEmpty()
 
-                        AnimatedVisibility(visible = isExpanded) {
-                            val itemsForThisHistory = historyItems[historyItem.id].orEmpty()
-
-                            Column(modifier = Modifier.padding(top = 8.dp)) {
-                                itemsForThisHistory.forEach { item ->
-                                    Text(
-                                        text = "- ${item.name}: ${item.quantity} ${item.unit.name}",
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                }
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Spacer(modifier = Modifier.weight(1f)) // empuja el botón al final
-                                    OutlinedButton(onClick = { myShoppingHistoryViewModel.deleteHistoryItem(historyItem.id) }) {
-                                        Text("Eliminar")
+                                Column(modifier = Modifier.padding(top = 8.dp)) {
+                                    itemsForThisHistory.forEach { item ->
+                                        Text(
+                                            text = "- ${item.name}: ${item.quantity} ${item.unit.name}",
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Spacer(modifier = Modifier.weight(1f))
+                                        OutlinedButton(onClick = { myShoppingHistoryViewModel.deleteHistoryItem(historyItem.id) }) {
+                                            Text("Eliminar")
+                                        }
                                     }
                                 }
                             }
                         }
-
+                        Divider()
                     }
-                    Divider()
                 }
             }
         }
     )
 }
+

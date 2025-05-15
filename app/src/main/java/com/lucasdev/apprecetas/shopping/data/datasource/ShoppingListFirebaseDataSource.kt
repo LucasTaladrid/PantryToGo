@@ -116,29 +116,21 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
 
     suspend fun addIngredientToShoppingListItemCollection(listId: String, ingredient: ShoppingIngredientModel): Boolean {
         return try {
-            val itemsRef = shoppingListItemsRef(listId)
+            val docRef = shoppingListItemsRef(listId).document(ingredient.ingredientId)
 
-            // Verificar si ya existe un documento con este ingrediente
-            val snapshot = itemsRef.whereEqualTo("ingredientId", ingredient.id).get().await()
+            val snapshot = docRef.get().await()
 
-            if (snapshot.isEmpty) {
-                // Si no existe, lo añadimos como un nuevo documento
-                val addedDocRef = itemsRef.add(ingredient.copy(id = "")).await()
-                val generatedId = addedDocRef.id
-                addedDocRef.update("id", generatedId).await()
-                true
+            if (snapshot.exists()) {
+                val existing = snapshot.toObject(ShoppingIngredientModel::class.java)
+                val updated = existing!!.copy(quantity = existing.quantity + ingredient.quantity)
+                docRef.set(updated.copy(id = ingredient.ingredientId)).await()
             } else {
-                // Si el ingrediente ya existe, actualizamos su cantidad
-                val existingItemDoc = snapshot.documents.first()
-                val existingItem = existingItemDoc.toObject(ShoppingIngredientModel::class.java)!!
-
-                // Actualizamos la cantidad del ingrediente
-                val updatedIngredient = existingItem.copy(quantity = existingItem.quantity + ingredient.quantity)
-                itemsRef.document(existingItemDoc.id).set(updatedIngredient).await()
-                true
+                docRef.set(ingredient.copy(id = ingredient.ingredientId)).await()
             }
+
+            true
         } catch (e: Exception) {
-            Log.e("ShoppingListFirebaseDataSource", "Error al añadir o actualizar ingrediente en la lista de compras: ${e.message}")
+            Log.e("ShoppingListFirebaseDataSource", "Error en addOrUpdateIngredientById: ${e.message}")
             false
         }
     }

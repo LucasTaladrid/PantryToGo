@@ -38,9 +38,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -101,10 +107,31 @@ fun IngredientsScreen(
                 return@AppScaffold
             }
             Column(modifier = Modifier.padding(paddingValues)) {
-                Text("Pantalla de Ingredientes", modifier = Modifier.padding(16.dp))
+                Text(
+                    text = "Despensa",
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(16.dp)
+                )
 
                 if (pantryIngredients.value.isEmpty()) {
-                    Text("Tu despensa esta vacía", modifier = Modifier.padding(16.dp))
+                    Text(
+                        text = buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp)) {
+                                append("¡Está es tú despensa, aquí puedes ver que tienes en la nevera!\n\n")
+                            }
+                            withStyle(style = SpanStyle(fontSize = 16.sp)) {
+                                append("Aquí podrás gestionar y ver los ingredientes que tienes disponibles en casa.\n\n")
+                                append("Usa el botón ➕ para añadir un nuevo ingrediente a tu despensa, selecciona la categoría y recuerda añadir la cantidad.\n")
+                                append("Es posible que cuando quieras añadir un ingrediente no este registrado, puedes registrarlo tú mismo en la pantalla de 'Mis ingredientes'.\n\n")
+                                append("Si quieres modificar un ingrediente o verlo en más detalle mantén pulsado sobre él.\n")
+                            }
+                        },
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxWidth(),
+                        style = MaterialTheme.typography.bodyLarge,
+                        textAlign = TextAlign.Start
+                    )
                 } else {
                     LazyColumn(
                         modifier = Modifier
