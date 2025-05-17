@@ -1,6 +1,5 @@
 package com.lucasdev.apprecetas.ui.navigation
 
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -14,6 +13,9 @@ import com.lucasdev.apprecetas.users.ui.LoginScreenViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lucasdev.apprecetas.ingredients.ui.MyIngredientsScreen
 import com.lucasdev.apprecetas.ingredients.ui.PantryIngredientsViewModel
+import com.lucasdev.apprecetas.recepies.ui.RecipeViewModel
+import com.lucasdev.apprecetas.recepies.ui.RecipesScreen
+import com.lucasdev.apprecetas.shopping.ui.MyShoppingHistoryScreen
 import com.lucasdev.apprecetas.shopping.ui.ShoppingListScreen
 import com.lucasdev.apprecetas.shopping.ui.ShoppingListViewModel
 import com.lucasdev.apprecetas.users.ui.RegisterScreen
@@ -63,20 +65,38 @@ fun AppNavHost(navController: NavHostController) {
         composable(Routes.MyIngredients.route) {
             MyIngredientsScreen(
                 back = {
-                    navController.navigate(Routes.Ingredients.route) {
-                        popUpTo(Routes.MyIngredients.route) { inclusive = true }
-                    }
+                    navController.navigateUp()
                 },
                 myIngredientsViewModel = hiltViewModel()
             )
         }
+
+        composable(Routes.MyShoppingHistory.route){
+            MyShoppingHistoryScreen(
+                back = {
+                    navController.navigateUp()
+                },
+                myShoppingHistoryViewModel = hiltViewModel()
+            )
+
+        }
+
         composable(Routes.Shopping.route){
             val viewModel: ShoppingListViewModel = hiltViewModel()
+            val pantryIngredientsViewModel: PantryIngredientsViewModel = hiltViewModel()
 
             ShoppingListScreen(
-                viewModel = viewModel,
+                shoppingListViewModel = viewModel,
+                pantryIngredientsViewModel = pantryIngredientsViewModel,
                 navController = navController
 
+            )
+        }
+        composable(Routes.Recipes.route){
+            val viewModel: RecipeViewModel = hiltViewModel()
+            RecipesScreen(
+                recipeViewModel = viewModel,
+                navController = navController
             )
         }
     }

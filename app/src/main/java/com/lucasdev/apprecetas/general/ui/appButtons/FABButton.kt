@@ -1,4 +1,4 @@
-package com.lucasdev.apprecetas.general.ui.fabButton
+package com.lucasdev.apprecetas.general.ui.appButtons
 
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons

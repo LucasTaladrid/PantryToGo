@@ -36,8 +36,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lucasdev.apprecetas.R
-import com.lucasdev.apprecetas.general.ui.appButton.AppButton
-import com.lucasdev.apprecetas.general.ui.appTextField.AppTextField
+import com.lucasdev.apprecetas.general.ui.appButtons.AppButton
+import com.lucasdev.apprecetas.general.ui.appTextFields.AppTextField
 
 //TODO AÑADIR BOTÓN DE REGISTRO Y COMPROBAR QUE FUNCIONA
 //todo cambiar el color de fondo para que sea acorde a la aplicación
@@ -193,19 +193,37 @@ fun LoginButton(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val email: String by loginScreenViewModel.email.collectAsState(initial = "")
     val password: String by loginScreenViewModel.password.collectAsState(initial = "")
-    AppButton(
-        text = "Conectarse",
-        onClick = {
-            loginScreenViewModel.loginUser(
-                onSuccess = onLoginSuccess,
-                onError = { errorMessage = it },
-                email = email,
-                password = password
+
+    Column {
+        AppButton(
+            text = "Conectarse",
+            onClick = {
+                loginScreenViewModel.loginUser(
+                    onSuccess = {
+                        errorMessage = null
+                        onLoginSuccess()
+                    },
+                    onError = {
+                        errorMessage = it
+                    },
+                    email = email,
+                    password = password
+                )
+            },
+            enabled = loginEnable
+        )
+        errorMessage?.let {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = it,
+                color = Color.Red,
+                fontSize = 14.sp,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             )
-        },
-        enabled = loginEnable
-    )
+        }
+    }
 }
+
 
 @Composable
 fun ForgotPassword(modifier: Modifier) {

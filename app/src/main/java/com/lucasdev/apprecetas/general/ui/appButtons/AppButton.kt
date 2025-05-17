@@ -1,4 +1,4 @@
-package com.lucasdev.apprecetas.general.ui.appButton
+package com.lucasdev.apprecetas.general.ui.appButtons
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Button

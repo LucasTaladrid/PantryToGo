@@ -6,23 +6,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -34,17 +31,25 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import com.lucasdev.apprecetas.general.ui.appButton.AppButton
+import androidx.compose.ui.unit.sp
+import com.lucasdev.apprecetas.general.ui.appButtons.AppButton
 import com.lucasdev.apprecetas.general.ui.dropDownSelector.DropdownSelector
 import com.lucasdev.apprecetas.general.ui.scaffold.AppScaffoldWithoutBottomBar
 import com.lucasdev.apprecetas.ingredients.domain.model.CategoryModel
 import com.lucasdev.apprecetas.ingredients.domain.model.IngredientModel
 import com.lucasdev.apprecetas.ingredients.domain.model.UnitTypeModel
+
 
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -69,37 +74,59 @@ fun MyIngredientsScreen(myIngredientsViewModel: MyIngredientsViewModel, back: ()
         title = "Mis ingredientes",
         onBackClick = back,
         content = { innerPadding ->
-            LazyColumn(
-                contentPadding = innerPadding,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                ingredientSections.forEachIndexed { index, section ->
-                    if (index == 0 || section.category != ingredientSections[index - 1].category) {
-                        item {
-                            Text(
-                                text = section.category,
-                                style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.padding()
-                            )
+
+            if (ingredientSections.isEmpty() || ingredientSections.all { it.ingredients.isEmpty() }) {
+                // Mostrar texto cuando no hay ingredientes
+
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp)) {
+                            append("¡Desde aquí puedes gestionar tus ingredientes registrados y personalizar tu experiencia con la aplicación!\n\n")
                         }
-                    }
-                    items(section.ingredients) { ingredient ->
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 4.dp)
-                                .combinedClickable(
-                                    onClick = {},
-                                    onLongClick = {
-                                        myIngredientsViewModel.onIngredientLongPress(
-                                            ingredient
-                                        )
-                                    }
-                                ),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(text = ingredient.name)
-                            Text(text = ingredient.unit.name)
+                        withStyle(style = SpanStyle(fontSize = 16.sp)) {
+                            append("Usa el botón ➕ para registrar un nuevo ingrediente. Selecciona la categoría y la unidad de medida.\n")
+                            append("Una vez el ingrediente esté registrado, lo podrás añadir a tu despensa, lista de la compra y recetas.\n\n")
+                            append("Si quieres modificar un ingrediente o verlo en más detalle mantén pulsado sobre él.\n")
+                        }
+                    },
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .padding(innerPadding)
+                        .fillMaxWidth(),
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Start
+                )
+            } else {
+                LazyColumn(
+                    contentPadding = innerPadding,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    ingredientSections.forEachIndexed { index, section ->
+                        if (index == 0 || section.category != ingredientSections[index - 1].category) {
+                            item {
+                                Text(
+                                    text = section.category,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.padding()
+                                )
+                            }
+                        }
+                        items(section.ingredients) { ingredient ->
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                                    .combinedClickable(
+                                        onClick = {},
+                                        onLongClick = {
+                                            myIngredientsViewModel.onIngredientLongPress(ingredient)
+                                        }
+                                    ),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(text = ingredient.name)
+                                Text(text = ingredient.unit.name)
+                            }
                         }
                     }
                 }
@@ -107,6 +134,7 @@ fun MyIngredientsScreen(myIngredientsViewModel: MyIngredientsViewModel, back: ()
         },
         onFabClick = { myIngredientsViewModel.showAddIngredientDialog() }
     )
+
 
     if (isDialogOpen) {
         AddIngredientDialog(

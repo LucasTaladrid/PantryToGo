@@ -25,7 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.lucasdev.apprecetas.general.ui.bottomBar.BottomBarNavigation
-import com.lucasdev.apprecetas.general.ui.fabButton.FAB
+import com.lucasdev.apprecetas.general.ui.appButtons.FAB
 import com.lucasdev.apprecetas.general.ui.topBar.TopBar
 import com.lucasdev.apprecetas.ui.navigation.Routes
 import kotlinx.coroutines.launch
@@ -93,7 +93,7 @@ fun MyModalDrawer(
         Routes.MyIngredients.route to "Mis Ingredientes",
         "mis_recetas" to "Mis recetas",
         "recetas_pendientes" to "Recetas pendientes",
-        "ultimas_compras" to "Últimas compras",
+        Routes.MyShoppingHistory.route to "Últimas compras",
         "ajustes" to "Ajustes"
     )
 
