@@ -213,7 +213,7 @@ fun ShoppingListScreen(
                     onDismissRequest = { showEditDeleteChoiceDialog = false },
                     title = { Text("¿Qué deseas hacer?") },
                     text = {
-                        Text("Selecciona una acción para el ingrediente:\n\n${selectedItem!!.name}")
+                        Text("Selecciona una acción para:\n\n • ${selectedItem!!.name}\n • Cantidad: ${selectedItem!!.quantity} ${selectedItem!!.unit.name}")
                     },
                     confirmButton = {
 

@@ -25,7 +25,7 @@ fun BottomBarNavigation(navController: NavHostController) {
 
     val selectedIndex = when (currentRoute) {
         Routes.Ingredients.route -> 0
-        Routes.Recepies.route -> 1
+        Routes.Recipes.route -> 1
         Routes.Shopping.route -> 2
         else -> -1
     }
@@ -61,8 +61,8 @@ fun BottomBarNavigation(navController: NavHostController) {
         NavigationBarItem(
             selected = selectedIndex == 1,
             onClick = {
-                if (currentRoute != Routes.Recepies.route) {
-                    navController.navigate(Routes.Recepies.route) {
+                if (currentRoute != Routes.Recipes.route) {
+                    navController.navigate(Routes.Recipes.route) {
                         popUpTo(navController.graph.startDestinationId) { saveState = true }
                         launchSingleTop = true
                         restoreState = true
