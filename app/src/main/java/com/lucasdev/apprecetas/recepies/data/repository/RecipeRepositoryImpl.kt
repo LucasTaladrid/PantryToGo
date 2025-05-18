@@ -14,4 +14,28 @@ class RecipeRepositoryImpl @Inject constructor(
     override suspend fun getRecipes(): List<RecipeModel> =
         dataSource.getCommonRecipes()
 
+    override suspend fun addToFavorites(recipe: RecipeModel) {
+        dataSource.addToFavorites(recipe)
+    }
+
+    override suspend fun removeFromFavorites(recipe: RecipeModel) {
+        dataSource.removeFromFavorites(recipe)
+    }
+
+    override suspend fun addToPending(recipe: RecipeModel) {
+        dataSource.addToPending(recipe)
+    }
+
+    override suspend fun removeFromPending(recipe: RecipeModel) {
+        dataSource.removeFromPending(recipe)
+    }
+
+    override suspend fun getFavoriteRecipes(): List<RecipeModel> =
+        dataSource.getFavoriteRecipes()
+
+
+    override suspend fun getPendingRecipes(): List<RecipeModel> =
+        dataSource.getPendingRecipes()
+
+
 }

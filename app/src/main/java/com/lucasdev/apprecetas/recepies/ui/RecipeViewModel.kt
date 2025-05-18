@@ -19,8 +19,14 @@ import com.lucasdev.apprecetas.ingredients.domain.usecase.GetIngredientsUseCase
 import com.lucasdev.apprecetas.ingredients.domain.usecase.GetUnitTypeUseCase
 import com.lucasdev.apprecetas.ingredients.domain.usecase.GetUserIngredientUseCase
 import com.lucasdev.apprecetas.recepies.domain.model.RecipeModel
+import com.lucasdev.apprecetas.recepies.domain.usecase.AddRecipeToFavoritesUseCase
+import com.lucasdev.apprecetas.recepies.domain.usecase.AddRecipeToPendingUseCase
 import com.lucasdev.apprecetas.recepies.domain.usecase.AddRecipeUseCase
+import com.lucasdev.apprecetas.recepies.domain.usecase.GetFavoritesRecipesUseCase
+import com.lucasdev.apprecetas.recepies.domain.usecase.GetPendingRecipesUseCase
 import com.lucasdev.apprecetas.recepies.domain.usecase.GetRecipeUseCase
+import com.lucasdev.apprecetas.recepies.domain.usecase.RemoveRecipeFromFavoritesUseCase
+import com.lucasdev.apprecetas.recepies.domain.usecase.RemoveRecipeFromPendingUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,7 +40,13 @@ class RecipeViewModel @Inject constructor(
     private val getUnitTypeUseCase: GetUnitTypeUseCase,
     private val getCategoriesUseCase: GetCategoriesUseCase,
     private val getRecipeUseCase: GetRecipeUseCase,
-    private val addRecipeUseCase: AddRecipeUseCase
+    private val addRecipeUseCase: AddRecipeUseCase,
+    private val addToFavoritesUseCase: AddRecipeToFavoritesUseCase,
+    private val removeFromFavoritesUseCase: RemoveRecipeFromFavoritesUseCase,
+    private val addToPendingUseCase: AddRecipeToPendingUseCase,
+    private val removeFromPendingUseCase: RemoveRecipeFromPendingUseCase,
+    private val getFavoriteRecipesUseCase: GetFavoritesRecipesUseCase,
+    private val getPendingRecipesUseCase: GetPendingRecipesUseCase
 ) : ViewModel() {
 
     private val _userName = MutableStateFlow("")
@@ -61,6 +73,12 @@ class RecipeViewModel @Inject constructor(
     private val _recipes = MutableStateFlow<List<RecipeModel>>(emptyList())
     val recipes: StateFlow<List<RecipeModel>> = _recipes
 
+    private val _favoriteRecipes = MutableStateFlow<List<RecipeModel>>(emptyList())
+    val favoriteRecipes: StateFlow<List<RecipeModel>> = _favoriteRecipes
+
+    private val _pendingRecipes = MutableStateFlow<List<RecipeModel>>(emptyList())
+    val pendingRecipes: StateFlow<List<RecipeModel>> = _pendingRecipes
+
     private val _isSaving = MutableStateFlow(false)
     val isSaving:  StateFlow<Boolean> = _isSaving
 
@@ -81,6 +99,8 @@ class RecipeViewModel @Inject constructor(
             loadIngredients()
             loadCategoriesAndUnits()
             loadRecipes()
+            loadFavoriteRecipes()
+            loadPendingRecipes()
         }
     }
     fun refresh() {
@@ -88,6 +108,8 @@ class RecipeViewModel @Inject constructor(
             loadIngredients()
             loadCategoriesAndUnits()
             loadRecipes()
+            loadFavoriteRecipes()
+            loadPendingRecipes()
 
         }
     }
@@ -143,6 +165,46 @@ class RecipeViewModel @Inject constructor(
         _units.value = unitsList
     }
 
+    private suspend fun loadFavoriteRecipes() {
+        _favoriteRecipes.value = getFavoriteRecipesUseCase()
+        Log.d("ViewModel", "Favoritos cargados: ${favoriteRecipes.value}")
+    }
+
+    private suspend fun loadPendingRecipes() {
+        _pendingRecipes.value = getPendingRecipesUseCase()
+        Log.d("ViewModel", "Pendientes cargados: ${pendingRecipes.value}")
+    }
+
+    fun isFavorite(recipe: RecipeModel): Boolean {
+        return _favoriteRecipes.value.any { it.id == recipe.id }
+    }
+
+    fun isPending(recipe: RecipeModel): Boolean {
+        return _pendingRecipes.value.any { it.id == recipe.id }
+    }
+
+    fun toggleFavorite(recipe: RecipeModel) {
+        viewModelScope.launch {
+            if (isFavorite(recipe)) {
+                removeFromFavoritesUseCase(recipe)
+            } else {
+                addToFavoritesUseCase(recipe)
+            }
+            loadFavoriteRecipes() // Refresca el estado
+        }
+    }
+
+    fun togglePending(recipe: RecipeModel) {
+        viewModelScope.launch {
+            if (isPending(recipe)) {
+                removeFromPendingUseCase(recipe)
+            } else {
+                addToPendingUseCase(recipe)
+            }
+            loadPendingRecipes()
+        }
+    }
+
     private fun getUserName() {
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser != null) {
@@ -168,15 +230,10 @@ class RecipeViewModel @Inject constructor(
         }
     }
 
-
-
-
-
     fun onNameChange(new: String) {
         recipeName = new
     }
 
-    /** UI llama a esto para añadir o acumular un ingrediente con cantidad */
     fun addOrUpdateIngredient(item: PantryIngredientModel) {
         val idx = _recipeIngredients.indexOfFirst { it.ingredientId == item.ingredientId }
         if (idx >= 0) {
@@ -187,17 +244,14 @@ class RecipeViewModel @Inject constructor(
         }
     }
 
-    /** UI llama a esto para eliminar un ingrediente de la receta */
     fun removeIngredient(item: PantryIngredientModel) {
         _recipeIngredients.remove(item)
     }
 
-    /** UI llama a esto cuando cambia el campo “pasos” */
     fun onStepsChange(text: String) {
         steps = text
     }
 
-    /** Lanza el caso de uso de “añadir receta” */
     fun createRecipe(recipeModel: RecipeModel, onSuccess: () -> Unit) {
 
         if (recipeModel.name.isBlank()
@@ -223,5 +277,10 @@ class RecipeViewModel @Inject constructor(
             }
         }
     }
+    fun updateIngredient(updated: PantryIngredientModel) {
+        val idx = _recipeIngredients.indexOfFirst { it.ingredientId == updated.ingredientId }
+        if (idx >= 0) _recipeIngredients[idx] = updated
+    }
+
 }
 
