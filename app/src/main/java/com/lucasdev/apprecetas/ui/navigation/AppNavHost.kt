@@ -13,6 +13,7 @@ import com.lucasdev.apprecetas.users.ui.LoginScreenViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.lucasdev.apprecetas.ingredients.ui.MyIngredientsScreen
 import com.lucasdev.apprecetas.ingredients.ui.PantryIngredientsViewModel
+import com.lucasdev.apprecetas.recepies.ui.MyRecipesScreen
 import com.lucasdev.apprecetas.recepies.ui.RecipeViewModel
 import com.lucasdev.apprecetas.recepies.ui.RecipesScreen
 import com.lucasdev.apprecetas.shopping.ui.MyShoppingHistoryScreen
@@ -79,6 +80,14 @@ fun AppNavHost(navController: NavHostController) {
                 myShoppingHistoryViewModel = hiltViewModel()
             )
 
+        }
+        composable(Routes.MyRecipes.route){
+            MyRecipesScreen(
+                back = {
+                    navController.navigateUp()
+                },
+                myRecipesViewModel = hiltViewModel()
+            )
         }
 
         composable(Routes.Shopping.route){

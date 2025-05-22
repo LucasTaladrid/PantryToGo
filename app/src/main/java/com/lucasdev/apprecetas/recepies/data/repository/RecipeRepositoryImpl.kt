@@ -11,7 +11,7 @@ class RecipeRepositoryImpl @Inject constructor(
     override suspend fun addRecipe(recipe: RecipeModel): RecipeModel? =
         dataSource.addRecipe(recipe)
 
-    override suspend fun getRecipes(): List<RecipeModel> =
+    override suspend fun getCommonRecipes(): List<RecipeModel> =
         dataSource.getCommonRecipes()
 
     override suspend fun addToFavorites(recipe: RecipeModel) {
@@ -36,6 +36,10 @@ class RecipeRepositoryImpl @Inject constructor(
 
     override suspend fun getPendingRecipes(): List<RecipeModel> =
         dataSource.getPendingRecipes()
+
+    override suspend fun getUserRecipes(): List<RecipeModel> =
+        dataSource.getUserRecipes()
+
 
 
 }

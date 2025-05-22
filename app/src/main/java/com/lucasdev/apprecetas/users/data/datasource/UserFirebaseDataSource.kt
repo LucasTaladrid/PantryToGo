@@ -9,7 +9,7 @@ import kotlin.coroutines.suspendCoroutine
 
 class UserFirebaseDataSource  @Inject constructor() : UserDataSource {
 
-    private val firestore = Firebase.firestore
+    private val db = Firebase.firestore
     private val auth = Firebase.auth
 
     override suspend fun isAdmin(): Boolean = suspendCoroutine { cont ->
@@ -19,7 +19,7 @@ class UserFirebaseDataSource  @Inject constructor() : UserDataSource {
             return@suspendCoroutine
         }
 
-        firestore.collection("users").document(uid).get()
+        db.collection("users").document(uid).get()
             .addOnSuccessListener { document ->
                 val isAdmin = document.getBoolean("admin") ?: false
                 cont.resume(isAdmin)

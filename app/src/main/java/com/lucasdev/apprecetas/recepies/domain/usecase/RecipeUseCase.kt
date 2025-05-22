@@ -11,11 +11,11 @@ class AddRecipeUseCase @Inject constructor(
         repository.addRecipe(recipe)
 }
 
-class GetRecipeUseCase @Inject constructor(
+class GetCommonRecipesUseCase @Inject constructor(
     private val repository: RecipeRepository
 ) {
     suspend operator fun invoke(): List<RecipeModel> =
-        repository.getRecipes()
+        repository.getCommonRecipes()
 }
 class AddRecipeToFavoritesUseCase @Inject constructor(
     private val repository: RecipeRepository
@@ -63,5 +63,11 @@ class GetPendingRecipesUseCase @Inject constructor(
     suspend operator fun invoke(): List<RecipeModel> =
         repository.getPendingRecipes()
 
+}
+class GetUserRecipeUseCase @Inject constructor(
+    private val repository:RecipeRepository
+){
+    suspend operator fun invoke(): List<RecipeModel> =
+        repository.getUserRecipes()
 }
 

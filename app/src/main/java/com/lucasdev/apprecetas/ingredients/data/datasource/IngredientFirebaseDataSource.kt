@@ -35,15 +35,13 @@ class IngredientFirebaseDataSource @Inject constructor( private val dataSourcePa
         return commonExists || userExists
     }
 
-
     private fun userIngredientsRef() = db.collection("users")
         .document(uid)
         .collection("ingredients")
 
-
     private fun commonIngredientsRef() = db.collection("ingredients")
 
-     suspend fun isAdmin(): Boolean = suspendCoroutine { cont ->
+    suspend fun isAdmin(): Boolean = suspendCoroutine { cont ->
         db.collection("users").document(uid).get()
             .addOnSuccessListener { snapshot ->
                 val admin = snapshot.getBoolean("admin") ?: false
@@ -75,7 +73,6 @@ class IngredientFirebaseDataSource @Inject constructor( private val dataSourcePa
         val user = getUserIngredients()
         return common + user
     }
-
 
     //todo no genera errores pero sería bueno poder eliminar los ingredeintes propios si se agrega un ingrediente común igual.
     suspend fun addIngredient(ingredient: IngredientModel): Boolean {

@@ -91,7 +91,7 @@ fun MyModalDrawer(
 ) {
     val items = listOf(
         Routes.MyIngredients.route to "Mis Ingredientes",
-        "mis_recetas" to "Mis recetas",
+        Routes.MyRecipes.route to "Mis recetas",
         "recetas_pendientes" to "Recetas pendientes",
         Routes.MyShoppingHistory.route to "Últimas compras",
         "ajustes" to "Ajustes"
