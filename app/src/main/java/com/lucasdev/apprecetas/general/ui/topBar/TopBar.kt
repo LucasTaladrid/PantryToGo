@@ -15,7 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
-//todo, decidir si quiero un menú, añadir el nombre del usuario, decidir si quiero hacer búsquedas, permitir limpiar la barra de búsqueda con el botón que ahora es cerrar
+//todo Cambiar colors, añadir dialogo de ayuda para mostar el tutorial
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar(userName:String,onClickIcon: (String) -> Unit,onClickDrawer:()->Unit) {
@@ -34,6 +34,8 @@ fun TopBar(userName:String,onClickIcon: (String) -> Unit,onClickDrawer:()->Unit)
                 )
             }
         },
+        /*
+        todo add search and close icon in the futre
         actions = {
             IconButton(onClick = { onClickIcon("Buscar") }) {
                 Icon(
@@ -48,5 +50,7 @@ fun TopBar(userName:String,onClickIcon: (String) -> Unit,onClickDrawer:()->Unit)
                 )
             }
         },
+
+         */
     )
 }

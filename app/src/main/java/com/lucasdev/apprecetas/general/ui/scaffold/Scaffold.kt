@@ -30,6 +30,17 @@ import com.lucasdev.apprecetas.general.ui.topBar.TopBar
 import com.lucasdev.apprecetas.ui.navigation.Routes
 import kotlinx.coroutines.launch
 
+/**
+ * Scaffold composable that provides a layout with a top bar,
+ * bottom navigation bar, modal navigation drawer, and optional floating action button.
+ *
+ * @param userName The name of the current user to be displayed in the top bar.
+ * @param modifier Modifier for styling the scaffold.
+ * @param content The main content composable that receives the padding values.
+ * @param onFabClick Optional callback invoked when the floating action button is clicked.
+ * @param navController NavHostController to handle navigation between screens.
+ */
+//todo cambiar colores
 @Composable
 fun AppScaffold(
     userName: String,
@@ -82,9 +93,13 @@ fun AppScaffold(
     }
 }
 
-/*
-TODO aquí se podrán encontrar los ajustes, mis recetas, mis recetas favoritas, mis recetas pendientes, mis recetas que voy hacer, las antiguas compras
-*/
+//todo cambiar colores
+/**
+ * A modal navigation drawer displaying a list of navigation items.
+ *
+ * @param onNavigate Callback invoked when a navigation item is selected,
+ *                   providing the route of the selected item.
+ */
 @Composable
 fun MyModalDrawer(
     onNavigate: (String) -> Unit

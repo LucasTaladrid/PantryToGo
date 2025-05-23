@@ -20,7 +20,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-
+/**
+ * A customizable text field with support for placeholders and optional password visibility toggle.
+ *
+ * @param value The current text displayed in the text field.
+ * @param onValueChange Callback triggered when the text changes.
+ * @param placeholder The placeholder text shown when the field is empty.
+ * @param modifier Modifier to be applied to this text field (default is [Modifier]).
+ * @param keyboardType The type of keyboard to use for input (default is [KeyboardType.Text]).
+ * @param isPassword If true, shows a toggleable password visibility icon and masks input (default is false).
+ */
 @Composable
 fun AppTextField(
     value: String,
