@@ -20,11 +20,13 @@ import com.lucasdev.apprecetas.recepies.domain.model.RecipeModel
 import com.lucasdev.apprecetas.recepies.domain.usecase.AddRecipeToFavoritesUseCase
 import com.lucasdev.apprecetas.recepies.domain.usecase.AddRecipeToPendingUseCase
 import com.lucasdev.apprecetas.recepies.domain.usecase.AddRecipeUseCase
+import com.lucasdev.apprecetas.recepies.domain.usecase.DeleteRecipeUseCase
 import com.lucasdev.apprecetas.recepies.domain.usecase.GetFavoritesRecipesUseCase
 import com.lucasdev.apprecetas.recepies.domain.usecase.GetPendingRecipesUseCase
 import com.lucasdev.apprecetas.recepies.domain.usecase.GetUserRecipeUseCase
 import com.lucasdev.apprecetas.recepies.domain.usecase.RemoveRecipeFromFavoritesUseCase
 import com.lucasdev.apprecetas.recepies.domain.usecase.RemoveRecipeFromPendingUseCase
+import com.lucasdev.apprecetas.recepies.domain.usecase.UpdateRecipeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -44,8 +46,10 @@ class MyRecipesScreenViewModel @Inject constructor(
     private val removeFromPendingUseCase: RemoveRecipeFromPendingUseCase,
     private val getFavoriteRecipesUseCase: GetFavoritesRecipesUseCase,
     private val getPendingRecipesUseCase: GetPendingRecipesUseCase,
-    private val getUserRecipeUseCase: GetUserRecipeUseCase
-): ViewModel(){
+    private val getUserRecipeUseCase: GetUserRecipeUseCase,
+    private val deleteRecipeUseCase: DeleteRecipeUseCase,
+    private val updateRecipeUseCase: UpdateRecipeUseCase
+) : ViewModel() {
 
     private val _categories = MutableStateFlow<List<CategoryModel>>(emptyList())
     val categories: StateFlow<List<CategoryModel>> = _categories
@@ -124,7 +128,7 @@ class MyRecipesScreenViewModel @Inject constructor(
             _errorMessage.value = null
             try {
                 val result = getUserRecipeUseCase()
-                _recipes.value=result
+                _recipes.value = result
             } catch (e: Exception) {
                 _errorMessage.value = "Error al cargar recetas"
                 Log.e("RecipeViewModel", "loadRecipes error", e)
@@ -287,11 +291,16 @@ class MyRecipesScreenViewModel @Inject constructor(
     }
 
     fun deleteSelectedRecipe() {
-        _selectedRecipe.value?.let { recipe ->
-            // Lógica para borrar
-           // deleteRecipe(recipe)
+        viewModelScope.launch {
+            _selectedRecipe.value?.let { recipe ->
+                val success = deleteRecipeUseCase(recipe.id)
+                if (success) {
+                    clearDialogs()
+                } else {
+                    _errorMessage.value = "Error al eliminar la receta"
+                }
+            }
         }
-        clearDialogs()
     }
 
     fun clearDialogs() {
@@ -299,6 +308,7 @@ class MyRecipesScreenViewModel @Inject constructor(
         _showEditDialog.value = false
         _showDeleteConfirmation.value = false
         _selectedRecipe.value = null
+        loadRecipes()
     }
 
     fun resetRecipeForm() {
@@ -306,6 +316,31 @@ class MyRecipesScreenViewModel @Inject constructor(
         recipeName = ""
         steps = ""
         _errorMessage.value = null
+    }
+
+    fun updateRecipe(onSuccess: () -> Unit) {
+        val current = _selectedRecipe.value ?: return
+
+        val updatedRecipe = current.copy(
+            name = recipeName,
+            ingredients = recipeIngredients,
+            steps = steps.lines().filter { it.isNotBlank() }
+        )
+
+        viewModelScope.launch {
+            _isSaving.value = true
+            _errorMessage.value = null
+            val result = updateRecipeUseCase(updatedRecipe)
+            _isSaving.value = false
+
+            if (result) {
+                onSuccess()
+                clearDialogs()
+                loadRecipes()
+            } else {
+                _errorMessage.value = "Error al actualizar la receta"
+            }
+        }
     }
 
 

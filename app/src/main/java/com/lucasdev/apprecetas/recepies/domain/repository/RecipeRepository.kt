@@ -12,5 +12,7 @@ interface RecipeRepository {
     suspend fun getFavoriteRecipes(): List<RecipeModel>
     suspend fun getPendingRecipes(): List<RecipeModel>
     suspend fun getUserRecipes() :List<RecipeModel>
+    suspend fun deleteRecipe(recipeId: String): Boolean
+    suspend fun updateRecipe(recipe: RecipeModel): Boolean
 
 }

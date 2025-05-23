@@ -451,6 +451,14 @@ fun AddIngredientDialog(
                         modifier = Modifier.padding(top = 4.dp)
                     )
                 }
+                if(!errorMessage.isNullOrEmpty()){
+                    Text(
+                        text = errorMessage,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
 
                 Text(
                     text = "¿No encuentras el ingrediente? Regístralo en 'Mis ingredientes'",

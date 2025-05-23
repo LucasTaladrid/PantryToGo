@@ -73,89 +73,165 @@ class RecipeFirebaseDataSource @Inject constructor() {
         }
     }
 
-        suspend fun addToFavorites(recipe: RecipeModel) {
-            try {
-                favoritesRef()
-                    .document(recipe.id)
-                    .set(
-                        mapOf(
-                            "id" to recipe.id,
-                            "name" to recipe.name,
-                            "ingredients" to recipe.ingredients,
-                            "steps" to recipe.steps
-                        )
+    suspend fun addToFavorites(recipe: RecipeModel) {
+        try {
+            favoritesRef()
+                .document(recipe.id)
+                .set(
+                    mapOf(
+                        "id" to recipe.id,
+                        "name" to recipe.name,
+                        "ingredients" to recipe.ingredients,
+                        "steps" to recipe.steps
                     )
-                    .await()
-            } catch (e: Exception) {
-                Log.e("RecipeDataSource", "Error adding to favorites", e)
-            }
+                )
+                .await()
+        } catch (e: Exception) {
+            Log.e("RecipeDataSource", "Error adding to favorites", e)
         }
+    }
 
-        suspend fun removeFromFavorites(recipe: RecipeModel) {
-            try {
-                favoritesRef()
-                    .document(recipe.id)
-                    .delete()
-                    .await()
-            } catch (e: Exception) {
-                Log.e("RecipeDataSource", "Error removing from favorites", e)
-            }
+    suspend fun removeFromFavorites(recipe: RecipeModel) {
+        try {
+            favoritesRef()
+                .document(recipe.id)
+                .delete()
+                .await()
+        } catch (e: Exception) {
+            Log.e("RecipeDataSource", "Error removing from favorites", e)
         }
+    }
 
-        suspend fun addToPending(recipe: RecipeModel) {
-            try {
-                pendingRef()
-                    .document(recipe.id)
-                    .set(
-                        mapOf(
-                            "id" to recipe.id,
-                            "name" to recipe.name,
-                            "ingredients" to recipe.ingredients,
-                            "steps" to recipe.steps
-                        )
+    suspend fun addToPending(recipe: RecipeModel) {
+        try {
+            pendingRef()
+                .document(recipe.id)
+                .set(
+                    mapOf(
+                        "id" to recipe.id,
+                        "name" to recipe.name,
+                        "ingredients" to recipe.ingredients,
+                        "steps" to recipe.steps
                     )
-                    .await()
-            } catch (e: Exception) {
-                Log.e("RecipeDataSource", "Error adding to pending", e)
-            }
-        }
-
-        suspend fun removeFromPending(recipe: RecipeModel) {
-            try {
-                pendingRef()
-                    .document(recipe.id)
-                    .delete()
-                    .await()
-            } catch (e: Exception) {
-                Log.e("RecipeDataSource", "Error removing from pending", e)
-            }
-        }
-
-        suspend fun getFavoriteRecipes(): List<RecipeModel> = try {
-            db.collection("users")
-                .document(uid)
-                .collection("favorites")
-                .get()
+                )
                 .await()
-                .documents
-                .mapNotNull { it.toObject(RecipeModel::class.java) }
         } catch (e: Exception) {
-            Log.e("RecipeDataSource", "Error getting favorite recipes", e)
-            emptyList()
+            Log.e("RecipeDataSource", "Error adding to pending", e)
         }
+    }
 
-        suspend fun getPendingRecipes(): List<RecipeModel> = try {
-            db.collection("users")
-                .document(uid)
-                .collection("pending")
-                .get()
+    suspend fun removeFromPending(recipe: RecipeModel) {
+        try {
+            pendingRef()
+                .document(recipe.id)
+                .delete()
                 .await()
-                .documents
-                .mapNotNull { it.toObject(RecipeModel::class.java) }
         } catch (e: Exception) {
-            Log.e("RecipeDataSource", "Error getting pending recipes", e)
-            emptyList()
+            Log.e("RecipeDataSource", "Error removing from pending", e)
         }
+    }
 
+    suspend fun getFavoriteRecipes(): List<RecipeModel> = try {
+        db.collection("users")
+            .document(uid)
+            .collection("favorites")
+            .get()
+            .await()
+            .documents
+            .mapNotNull { it.toObject(RecipeModel::class.java) }
+    } catch (e: Exception) {
+        Log.e("RecipeDataSource", "Error getting favorite recipes", e)
+        emptyList()
+    }
+
+    suspend fun getPendingRecipes(): List<RecipeModel> = try {
+        db.collection("users")
+            .document(uid)
+            .collection("pending")
+            .get()
+            .await()
+            .documents
+            .mapNotNull { it.toObject(RecipeModel::class.java) }
+    } catch (e: Exception) {
+        Log.e("RecipeDataSource", "Error getting pending recipes", e)
+        emptyList()
+    }
+
+    /*
+      This method should be modified in the future to accommodate a larger number of users (Cloud Function)
+     */
+    suspend fun deleteRecipe(recipeId: String): Boolean {
+        return try {
+            val admin = isAdmin()
+            val mainRef = if (admin) commonRecipesRef() else userRecipesRef()
+
+            mainRef.document(recipeId).delete().await()
+
+            if (admin) {
+                val usersSnapshot = db.collection("users").get().await()
+                for (userDoc in usersSnapshot.documents) {
+                    val userId = userDoc.id
+                    val userFavorites =
+                        db.collection("users").document(userId).collection("favorites")
+                    val userPending = db.collection("users").document(userId).collection("pending")
+
+                    userFavorites.document(recipeId).delete().await()
+                    userPending.document(recipeId).delete().await()
+                }
+            } else {
+                favoritesRef().document(recipeId).delete().await()
+                pendingRef().document(recipeId).delete().await()
+            }
+
+            true
+        } catch (e: Exception) {
+            Log.e("RecipeFirebaseDataSource", "Error deleting recipe completely", e)
+            false
+        }
 
     }
+
+    suspend fun updateRecipe(recipe: RecipeModel): Boolean {
+        return try {
+            val admin = isAdmin()
+            val mainRef = if (admin) commonRecipesRef() else userRecipesRef()
+
+            // 1. Actualizar receta principal
+            mainRef.document(recipe.id).set(recipe).await()
+
+            if (admin) {
+                val usersSnapshot = db.collection("users").get().await()
+                for (userDoc in usersSnapshot.documents) {
+                    val userId = userDoc.id
+                    val favDoc = db.collection("users").document(userId).collection("favorites").document(recipe.id)
+                    val pendDoc = db.collection("users").document(userId).collection("pending").document(recipe.id)
+
+                    if (favDoc.get().await().exists()) {
+                        favDoc.set(recipe).await()
+                    }
+                    if (pendDoc.get().await().exists()) {
+                        pendDoc.set(recipe).await()
+                    }
+                }
+            } else {
+                val favDoc = favoritesRef().document(recipe.id)
+                val pendDoc = pendingRef().document(recipe.id)
+
+                if (favDoc.get().await().exists()) {
+                    favDoc.set(recipe).await()
+                }
+                if (pendDoc.get().await().exists()) {
+                    pendDoc.set(recipe).await()
+                }
+            }
+
+            true
+        } catch (e: Exception) {
+            Log.e("RecipeFirebaseDataSource", "Error updating recipe", e)
+            false
+        }
+    }
+
+
+
+}

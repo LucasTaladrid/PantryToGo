@@ -71,3 +71,17 @@ class GetUserRecipeUseCase @Inject constructor(
         repository.getUserRecipes()
 }
 
+class DeleteRecipeUseCase @Inject constructor(
+    private val repository: RecipeRepository
+) {
+    suspend operator fun invoke(recipeId: String): Boolean =
+        repository.deleteRecipe(recipeId)
+}
+
+class UpdateRecipeUseCase @Inject constructor(
+    private val repository: RecipeRepository
+) {
+    suspend operator fun invoke(recipe: RecipeModel): Boolean =
+        repository.updateRecipe(recipe)
+}
+

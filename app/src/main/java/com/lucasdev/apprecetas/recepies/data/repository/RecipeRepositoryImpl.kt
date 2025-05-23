@@ -40,6 +40,13 @@ class RecipeRepositoryImpl @Inject constructor(
     override suspend fun getUserRecipes(): List<RecipeModel> =
         dataSource.getUserRecipes()
 
+    override suspend fun deleteRecipe(recipeId: String): Boolean =
+        dataSource.deleteRecipe(recipeId)
+
+    override suspend fun updateRecipe(recipe: RecipeModel): Boolean =
+        dataSource.updateRecipe(recipe)
+
+
 
 
 }

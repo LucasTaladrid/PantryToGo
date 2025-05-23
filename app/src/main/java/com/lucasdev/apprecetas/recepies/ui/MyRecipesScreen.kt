@@ -1,6 +1,5 @@
 package com.lucasdev.apprecetas.recepies.ui
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -165,13 +164,11 @@ fun MyRecipesScreen(myRecipesViewModel: MyRecipesScreenViewModel, back: () -> Un
                         onAddIngredient = myRecipesViewModel::addOrUpdateIngredient,
                         onRemoveIngredient = myRecipesViewModel::removeIngredient,
                         onCreateRecipe = { name, ingredients, steps, onSuccess ->
-                            // A futuro reemplazar por updateRecipe()
-                            val recipe = selectedRecipe!!.copy(
-                                name = name,
-                                ingredients = ingredients,
-                                steps = steps.split("\n")
-                            )
-                            myRecipesViewModel.createRecipe(recipe, onSuccess)
+                            myRecipesViewModel.onNameChange(name)
+                            ingredients.forEach { myRecipesViewModel.addOrUpdateIngredient(it) }
+                            myRecipesViewModel.onStepsChange(steps)
+
+                            myRecipesViewModel.updateRecipe(onSuccess)
                         },
                         onDismiss = {
                             myRecipesViewModel.clearDialogs()
