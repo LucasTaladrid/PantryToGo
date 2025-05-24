@@ -1,4 +1,4 @@
-package com.lucasdev.apprecetas.users.ui
+package com.lucasdev.apprecetas.users.ui.login
 
 import android.app.Activity
 import androidx.activity.compose.LocalActivity
@@ -39,7 +39,7 @@ import com.lucasdev.apprecetas.R
 import com.lucasdev.apprecetas.general.ui.appButtons.AppButton
 import com.lucasdev.apprecetas.general.ui.appTextFields.AppTextField
 
-//TODO AÑADIR BOTÓN DE REGISTRO Y COMPROBAR QUE FUNCIONA
+
 //todo cambiar el color de fondo para que sea acorde a la aplicación
 @Composable
 fun LoginScreen(
@@ -145,7 +145,7 @@ fun Body(
         Spacer(modifier = Modifier.size(4.dp))
         Password(password, { loginScreenViewModel.onLoginChanged(email = email, password = it) })
         Spacer(modifier = Modifier.size(8.dp))
-        ForgotPassword(Modifier.align(Alignment.End))
+        //ForgotPassword(Modifier.align(Alignment.End))
         Spacer(modifier = Modifier.size(16.dp))
         LoginButton(isLoginEnable, loginScreenViewModel, onLoginSuccess)
         Spacer(modifier = Modifier.size(16.dp))
@@ -224,7 +224,8 @@ fun LoginButton(
     }
 }
 
-
+/*
+todo add this feature in the future
 @Composable
 fun ForgotPassword(modifier: Modifier) {
     Text(
@@ -234,6 +235,8 @@ fun ForgotPassword(modifier: Modifier) {
         color = Color(0xFF4EA8E9),
         modifier = modifier.clickable {})
 }
+
+ */
 
 @Composable
 fun Password(password: String, onTextChange: (String) -> Unit) {

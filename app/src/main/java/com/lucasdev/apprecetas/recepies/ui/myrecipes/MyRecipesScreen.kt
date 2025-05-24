@@ -1,4 +1,4 @@
-package com.lucasdev.apprecetas.recepies.ui
+package com.lucasdev.apprecetas.recepies.ui.myrecipes
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,6 +26,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.lucasdev.apprecetas.general.ui.scaffold.AppScaffoldWithoutBottomBar
 import com.lucasdev.apprecetas.recepies.domain.model.RecipeModel
+import com.lucasdev.apprecetas.recepies.ui.common.RecipeCreateDialog
+import com.lucasdev.apprecetas.recepies.ui.common.RecipeItemPress
 
 
 @Composable

@@ -8,6 +8,8 @@ sealed class Routes(val route: String) {
     object Shopping : Routes("shopping")
     object MyIngredients : Routes("myIngredients")
     object MyRecipes : Routes("myRecepies")
+    object MyPendingRecipes : Routes("myPendingRecipes")
+    object MyFavouriteRecipes : Routes("myFavouriteRecipes")
     object MyShoppingHistory : Routes("myShoppingHistory")
 
 }

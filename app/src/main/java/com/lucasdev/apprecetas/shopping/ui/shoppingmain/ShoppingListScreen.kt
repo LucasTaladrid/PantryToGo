@@ -1,9 +1,7 @@
-package com.lucasdev.apprecetas.shopping.ui
+package com.lucasdev.apprecetas.shopping.ui.shoppingmain
 
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -50,12 +48,11 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
 import com.lucasdev.apprecetas.general.ui.appButtons.AppButton
 import com.lucasdev.apprecetas.general.ui.appTextFields.AppOutlinedTextField
-import com.lucasdev.apprecetas.general.ui.appTextFields.AppTextField
 import com.lucasdev.apprecetas.general.ui.dropDownSelector.DropdownSelector
 import com.lucasdev.apprecetas.general.ui.scaffold.AppScaffold
 import com.lucasdev.apprecetas.ingredients.domain.model.CategoryModel
 import com.lucasdev.apprecetas.ingredients.domain.model.IngredientModel
-import com.lucasdev.apprecetas.ingredients.ui.PantryIngredientsViewModel
+import com.lucasdev.apprecetas.ingredients.ui.pantry.PantryIngredientsViewModel
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingIngredientModel
 
 

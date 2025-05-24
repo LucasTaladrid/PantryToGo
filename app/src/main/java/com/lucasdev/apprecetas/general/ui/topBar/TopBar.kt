@@ -35,7 +35,7 @@ fun TopBar(userName:String,onClickIcon: (String) -> Unit,onClickDrawer:()->Unit)
             }
         },
         /*
-        todo add search and close icon in the futre
+        todo add search and close features in the future
         actions = {
             IconButton(onClick = { onClickIcon("Buscar") }) {
                 Icon(

@@ -36,16 +36,16 @@ class RemoveRecipeFromFavoritesUseCase @Inject constructor(
 class AddRecipeToPendingUseCase @Inject constructor(
     private val repository: RecipeRepository
 ) {
-    suspend operator fun invoke(recipe: RecipeModel) {
-        repository.addToPending(recipe)
+    suspend operator fun invoke(recipe: RecipeModel, shoppingListId: String) {
+        repository.addToPending(recipe, shoppingListId)
     }
 }
 
 class RemoveRecipeFromPendingUseCase @Inject constructor(
     private val repository: RecipeRepository
 ) {
-    suspend operator fun invoke(recipe: RecipeModel) {
-        repository.removeFromPending(recipe)
+    suspend operator fun invoke(recipe: RecipeModel, shoppingListId: String) {
+        repository.removeFromPending(recipe, shoppingListId)
     }
 }
 
@@ -83,5 +83,13 @@ class UpdateRecipeUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(recipe: RecipeModel): Boolean =
         repository.updateRecipe(recipe)
+}
+
+class MarkRecipeAsCookedUseCase @Inject constructor(
+    private val repository: RecipeRepository
+) {
+    suspend operator fun invoke(recipe: RecipeModel) {
+        repository.markRecipeAsCooked(recipe)
+    }
 }
 

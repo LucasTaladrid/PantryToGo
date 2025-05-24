@@ -1,4 +1,4 @@
-package com.lucasdev.apprecetas.users.ui
+package com.lucasdev.apprecetas.users.ui.register
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

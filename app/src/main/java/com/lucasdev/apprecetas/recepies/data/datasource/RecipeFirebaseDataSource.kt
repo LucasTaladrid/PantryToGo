@@ -5,7 +5,10 @@ import com.google.firebase.Firebase
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
+import com.lucasdev.apprecetas.ingredients.domain.model.PantryIngredientModel
 import com.lucasdev.apprecetas.recepies.domain.model.RecipeModel
+import com.lucasdev.apprecetas.shopping.data.datasource.ShoppingListFirebaseDataSource
+import com.lucasdev.apprecetas.shopping.domain.model.ShoppingIngredientModel
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import kotlin.coroutines.resume
@@ -15,12 +18,16 @@ class RecipeFirebaseDataSource @Inject constructor() {
     private val db = Firebase.firestore
     private val auth = Firebase.auth
     private val uid = auth.currentUser?.uid ?: "anon"
+    private val shoppingDataSource = ShoppingListFirebaseDataSource()
+
 
     private fun userRecipesRef() = db.collection("users").document(uid).collection("recipes")
 
     private fun favoritesRef() = db.collection("users").document(uid).collection("favorites")
 
     private fun pendingRef() = db.collection("users").document(uid).collection("pending")
+
+    private fun pantryRef() = db.collection("users").document(uid).collection("inventory")
 
     private fun commonRecipesRef() = db.collection("recipes")
 
@@ -91,19 +98,9 @@ class RecipeFirebaseDataSource @Inject constructor() {
         }
     }
 
-    suspend fun removeFromFavorites(recipe: RecipeModel) {
+    suspend fun addToPending(recipe: RecipeModel,shoppingListId: String) {
         try {
-            favoritesRef()
-                .document(recipe.id)
-                .delete()
-                .await()
-        } catch (e: Exception) {
-            Log.e("RecipeDataSource", "Error removing from favorites", e)
-        }
-    }
-
-    suspend fun addToPending(recipe: RecipeModel) {
-        try {
+            verifyPantryAndUpdateShoppingList(recipe, shoppingListId)
             pendingRef()
                 .document(recipe.id)
                 .set(
@@ -120,12 +117,37 @@ class RecipeFirebaseDataSource @Inject constructor() {
         }
     }
 
-    suspend fun removeFromPending(recipe: RecipeModel) {
+    suspend fun removeFromFavorites(recipe: RecipeModel) {
         try {
-            pendingRef()
+            favoritesRef()
                 .document(recipe.id)
                 .delete()
                 .await()
+        } catch (e: Exception) {
+            Log.e("RecipeDataSource", "Error removing from favorites", e)
+        }
+    }
+
+    suspend fun removeFromPending(recipe: RecipeModel, shoppingListId: String) {
+        try {
+
+            pendingRef().document(recipe.id).delete().await()
+
+
+            val shoppingIngredients = recipe.ingredients.map {
+                ShoppingIngredientModel(
+                    id = it.ingredientId,
+                    ingredientId = it.ingredientId,
+                    name = it.name,
+                    unit = it.unit,
+                    quantity = it.quantity,
+                    category = it.category,
+                    checked = false
+                )
+            }
+
+            shoppingDataSource.subtractIngredientsFromShoppingList(shoppingListId, shoppingIngredients)
+
         } catch (e: Exception) {
             Log.e("RecipeDataSource", "Error removing from pending", e)
         }
@@ -203,8 +225,10 @@ class RecipeFirebaseDataSource @Inject constructor() {
                 val usersSnapshot = db.collection("users").get().await()
                 for (userDoc in usersSnapshot.documents) {
                     val userId = userDoc.id
-                    val favDoc = db.collection("users").document(userId).collection("favorites").document(recipe.id)
-                    val pendDoc = db.collection("users").document(userId).collection("pending").document(recipe.id)
+                    val favDoc = db.collection("users").document(userId).collection("favorites")
+                        .document(recipe.id)
+                    val pendDoc = db.collection("users").document(userId).collection("pending")
+                        .document(recipe.id)
 
                     if (favDoc.get().await().exists()) {
                         favDoc.set(recipe).await()
@@ -232,6 +256,67 @@ class RecipeFirebaseDataSource @Inject constructor() {
         }
     }
 
+    private suspend fun verifyPantryAndUpdateShoppingList(recipe: RecipeModel, listId: String) {
+        val pantryRef = pantryRef()
+
+        val pantrySnapshot = pantryRef.get().await()
+        val pantryItems = pantrySnapshot.documents.mapNotNull { it.toObject(PantryIngredientModel::class.java) }
+
+        for (ingredient in recipe.ingredients) {
+            val pantryItem = pantryItems.find {
+                it.ingredientId == ingredient.ingredientId && it.unit.name == ingredient.unit.name
+            }
+
+            val availableQty = pantryItem?.quantity ?: 0.0
+            if (availableQty < ingredient.quantity) {
+                val neededQty = ingredient.quantity - availableQty
+
+                val shoppingItem = ShoppingIngredientModel(
+                    id = ingredient.ingredientId,
+                    ingredientId = ingredient.ingredientId,
+                    name = ingredient.name,
+                    quantity = neededQty,
+                    unit = ingredient.unit,
+                    category = ingredient.category,
+                    checked = false
+                )
+
+                shoppingDataSource.addIngredientToShoppingListItemCollection(listId, shoppingItem)
+            }
+        }
+    }
+
+    suspend fun markRecipeAsCooked(recipe: RecipeModel) {
+        try {
+            // 1. Eliminar de pendientes
+            pendingRef().document(recipe.id).delete().await()
+
+            // 2. Obtener snapshot actual de la despensa
+            val pantrySnapshot = pantryRef().get().await()
+            val pantryItems = pantrySnapshot.documents.mapNotNull { it.toObject(PantryIngredientModel::class.java) }
+
+            // 3. Recorremos los ingredientes de la receta
+            for (ingredient in recipe.ingredients) {
+                val pantryItem = pantryItems.find {
+                    it.ingredientId == ingredient.ingredientId && it.unit.name == ingredient.unit.name
+                }
+
+                if (pantryItem != null) {
+                    val updatedQty = pantryItem.quantity - ingredient.quantity
+                    val newQty = if (updatedQty < 0) 0.0 else updatedQty
+
+                    pantryRef().document(pantryItem.ingredientId).update("quantity", newQty).await()
+                } else {
+                    Log.w("markRecipeAsCooked", "Ingrediente no encontrado en despensa: ${ingredient.name}")
+                }
+            }
+
+            Log.d("markRecipeAsCooked", "Receta procesada correctamente")
+
+        } catch (e: Exception) {
+            Log.e("markRecipeAsCooked", "Error al marcar receta como cocinada", e)
+        }
+    }
 
 
 }

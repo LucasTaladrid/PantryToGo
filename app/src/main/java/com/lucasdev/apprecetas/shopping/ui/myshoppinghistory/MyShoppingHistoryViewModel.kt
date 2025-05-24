@@ -1,4 +1,4 @@
-package com.lucasdev.apprecetas.shopping.ui
+package com.lucasdev.apprecetas.shopping.ui.myshoppinghistory
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

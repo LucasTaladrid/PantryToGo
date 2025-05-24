@@ -1,9 +1,10 @@
-package com.lucasdev.apprecetas.recepies.ui
+package com.lucasdev.apprecetas.recepies.ui.common
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -61,6 +62,7 @@ fun RecipeItem(
     isPending: Boolean,
     onToggleFavorite: () -> Unit,
     onTogglePending: () -> Unit,
+    onMarkAsCooked: (() -> Unit)? = null
 ) {
 
 
@@ -94,6 +96,7 @@ fun RecipeItem(
                     tint = if (isPending) Color(0xFFFF9800) else LocalContentColor.current
                 )
             }
+
         }
 
         AnimatedVisibility(visible = isExpanded) {
@@ -109,6 +112,17 @@ fun RecipeItem(
                 recipe.steps.forEachIndexed { idx, step ->
                     Text("${idx + 1}. $step")
                     Spacer(Modifier.height(4.dp))
+                }
+                if (isPending && onMarkAsCooked != null) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Button(onClick = onMarkAsCooked) {
+                            Text("Marcar como cocinada")
+                        }
+                    }
                 }
             }
         }

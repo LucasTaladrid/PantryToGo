@@ -1,4 +1,4 @@
-package com.lucasdev.apprecetas.recepies.ui
+package com.lucasdev.apprecetas.recepies.ui.recipesmain
 
 import android.util.Log
 import androidx.compose.runtime.getValue
@@ -7,6 +7,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.lucasdev.apprecetas.ingredients.domain.model.CategoryModel
 import com.lucasdev.apprecetas.ingredients.domain.model.IngredientModel
 import com.lucasdev.apprecetas.ingredients.domain.model.IngredientSection
@@ -20,13 +22,12 @@ import com.lucasdev.apprecetas.recepies.domain.model.RecipeModel
 import com.lucasdev.apprecetas.recepies.domain.usecase.AddRecipeToFavoritesUseCase
 import com.lucasdev.apprecetas.recepies.domain.usecase.AddRecipeToPendingUseCase
 import com.lucasdev.apprecetas.recepies.domain.usecase.AddRecipeUseCase
-import com.lucasdev.apprecetas.recepies.domain.usecase.DeleteRecipeUseCase
 import com.lucasdev.apprecetas.recepies.domain.usecase.GetFavoritesRecipesUseCase
 import com.lucasdev.apprecetas.recepies.domain.usecase.GetPendingRecipesUseCase
-import com.lucasdev.apprecetas.recepies.domain.usecase.GetUserRecipeUseCase
+import com.lucasdev.apprecetas.recepies.domain.usecase.GetCommonRecipesUseCase
 import com.lucasdev.apprecetas.recepies.domain.usecase.RemoveRecipeFromFavoritesUseCase
 import com.lucasdev.apprecetas.recepies.domain.usecase.RemoveRecipeFromPendingUseCase
-import com.lucasdev.apprecetas.recepies.domain.usecase.UpdateRecipeUseCase
+import com.lucasdev.apprecetas.shopping.domain.usecase.GetShoppingListsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -34,11 +35,12 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class MyRecipesScreenViewModel @Inject constructor(
+class RecipeViewModel @Inject constructor(
     private val getUserIngredientUseCase: GetUserIngredientUseCase,
     private val getIngredientsUseCase: GetIngredientsUseCase,
     private val getUnitTypeUseCase: GetUnitTypeUseCase,
     private val getCategoriesUseCase: GetCategoriesUseCase,
+    private val getCommonRecipesUseCase: GetCommonRecipesUseCase,
     private val addRecipeUseCase: AddRecipeUseCase,
     private val addToFavoritesUseCase: AddRecipeToFavoritesUseCase,
     private val removeFromFavoritesUseCase: RemoveRecipeFromFavoritesUseCase,
@@ -46,10 +48,11 @@ class MyRecipesScreenViewModel @Inject constructor(
     private val removeFromPendingUseCase: RemoveRecipeFromPendingUseCase,
     private val getFavoriteRecipesUseCase: GetFavoritesRecipesUseCase,
     private val getPendingRecipesUseCase: GetPendingRecipesUseCase,
-    private val getUserRecipeUseCase: GetUserRecipeUseCase,
-    private val deleteRecipeUseCase: DeleteRecipeUseCase,
-    private val updateRecipeUseCase: UpdateRecipeUseCase
+    private val getShoppingListsUseCase: GetShoppingListsUseCase
 ) : ViewModel() {
+
+    private val _userName = MutableStateFlow("")
+    val userName: StateFlow<String> = _userName
 
     private val _categories = MutableStateFlow<List<CategoryModel>>(emptyList())
     val categories: StateFlow<List<CategoryModel>> = _categories
@@ -79,19 +82,7 @@ class MyRecipesScreenViewModel @Inject constructor(
     val pendingRecipes: StateFlow<List<RecipeModel>> = _pendingRecipes
 
     private val _isSaving = MutableStateFlow(false)
-    val isSaving: StateFlow<Boolean> = _isSaving
-
-    private val _showOptionsDialog = MutableStateFlow(false)
-    val showOptionsDialog: StateFlow<Boolean> = _showOptionsDialog
-
-    private val _showEditDialog = MutableStateFlow(false)
-    val showEditDialog: StateFlow<Boolean> = _showEditDialog
-
-    private val _showDeleteConfirmation = MutableStateFlow(false)
-    val showDeleteConfirmation: StateFlow<Boolean> = _showDeleteConfirmation
-
-    private val _selectedRecipe = MutableStateFlow<RecipeModel?>(null)
-    val selectedRecipe: StateFlow<RecipeModel?> = _selectedRecipe
+    val isSaving:  StateFlow<Boolean> = _isSaving
 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
@@ -103,14 +94,17 @@ class MyRecipesScreenViewModel @Inject constructor(
 
     private var recipeName by mutableStateOf("")
 
+
     init {
         viewModelScope.launch {
+            getUserName()
             loadIngredients()
             loadCategoriesAndUnits()
             loadRecipes()
+            loadFavoriteRecipes()
+            loadPendingRecipes()
         }
     }
-
     fun refresh() {
         viewModelScope.launch {
             loadIngredients()
@@ -127,8 +121,8 @@ class MyRecipesScreenViewModel @Inject constructor(
             _isLoading.value = true
             _errorMessage.value = null
             try {
-                val result = getUserRecipeUseCase()
-                _recipes.value = result
+                val result = getCommonRecipesUseCase()
+                _recipes.value=result
             } catch (e: Exception) {
                 _errorMessage.value = "Error al cargar recetas"
                 Log.e("RecipeViewModel", "loadRecipes error", e)
@@ -204,12 +198,40 @@ class MyRecipesScreenViewModel @Inject constructor(
 
     fun togglePending(recipe: RecipeModel) {
         viewModelScope.launch {
-            if (isPending(recipe)) {
-                removeFromPendingUseCase(recipe)
+            val shoppingLists = getShoppingListsUseCase()
+            val activeShoppingList = shoppingLists.firstOrNull()
+            if (isPending(recipe) && activeShoppingList!=null) {
+                removeFromPendingUseCase(recipe,activeShoppingList.id)
             } else {
-                addToPendingUseCase(recipe)
+                if(activeShoppingList!=null)
+                    addToPendingUseCase(recipe,activeShoppingList.id)
             }
             loadPendingRecipes()
+        }
+    }
+
+    private fun getUserName() {
+        val currentUser = FirebaseAuth.getInstance().currentUser
+        if (currentUser != null) {
+            val uid = currentUser.uid
+            FirebaseFirestore.getInstance()
+                .collection("users")
+                .document(uid)
+                .get()
+                .addOnSuccessListener { document ->
+                    if (document != null && document.exists()) {
+                        val firestoreName = document.getString("name")
+                        if (!firestoreName.isNullOrEmpty()) {
+                            _userName.value = firestoreName
+                        }
+                    }
+                }
+                .addOnFailureListener { e ->
+                    Log.e(
+                        "IngredientsViewModel",
+                        "Error al obtener nombre de usuario: ${e.message}"
+                    )
+                }
         }
     }
 
@@ -261,88 +283,10 @@ class MyRecipesScreenViewModel @Inject constructor(
         }
     }
 
-    //todo lógico para borrar y modificar recetas
     fun updateIngredient(updated: PantryIngredientModel) {
         val idx = _recipeIngredients.indexOfFirst { it.ingredientId == updated.ingredientId }
         if (idx >= 0) _recipeIngredients[idx] = updated
     }
 
-
-    fun onRecipeLongClick(recipe: RecipeModel) {
-        _selectedRecipe.value = recipe
-        _showOptionsDialog.value = true
-    }
-
-    fun editSelectedRecipe() {
-        _selectedRecipe.value?.let { recipe ->
-            _recipeIngredients.clear()
-            _recipeIngredients.addAll(recipe.ingredients)
-            recipeName = recipe.name
-            steps = recipe.steps.joinToString("\n") // O mantener steps como lista, como prefieras
-        }
-        _showOptionsDialog.value = false
-        _showEditDialog.value = true
-    }
-
-
-    fun confirmDeleteSelectedRecipe() {
-        _showOptionsDialog.value = false
-        _showDeleteConfirmation.value = true
-    }
-
-    fun deleteSelectedRecipe() {
-        viewModelScope.launch {
-            _selectedRecipe.value?.let { recipe ->
-                val success = deleteRecipeUseCase(recipe.id)
-                if (success) {
-                    clearDialogs()
-                } else {
-                    _errorMessage.value = "Error al eliminar la receta"
-                }
-            }
-        }
-    }
-
-    fun clearDialogs() {
-        _showOptionsDialog.value = false
-        _showEditDialog.value = false
-        _showDeleteConfirmation.value = false
-        _selectedRecipe.value = null
-        loadRecipes()
-    }
-
-    fun resetRecipeForm() {
-        _recipeIngredients.clear()
-        recipeName = ""
-        steps = ""
-        _errorMessage.value = null
-    }
-
-    fun updateRecipe(onSuccess: () -> Unit) {
-        val current = _selectedRecipe.value ?: return
-
-        val updatedRecipe = current.copy(
-            name = recipeName,
-            ingredients = recipeIngredients,
-            steps = steps.lines().filter { it.isNotBlank() }
-        )
-
-        viewModelScope.launch {
-            _isSaving.value = true
-            _errorMessage.value = null
-            val result = updateRecipeUseCase(updatedRecipe)
-            _isSaving.value = false
-
-            if (result) {
-                onSuccess()
-                clearDialogs()
-                loadRecipes()
-            } else {
-                _errorMessage.value = "Error al actualizar la receta"
-            }
-        }
-    }
-
-
-
 }
+

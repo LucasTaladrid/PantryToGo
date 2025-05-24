@@ -1,4 +1,4 @@
-package com.lucasdev.apprecetas.users.ui
+package com.lucasdev.apprecetas.users.ui.login
 
 import android.util.Patterns
 import androidx.lifecycle.ViewModel

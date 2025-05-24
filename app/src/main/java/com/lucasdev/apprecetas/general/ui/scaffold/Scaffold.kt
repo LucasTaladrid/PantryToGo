@@ -107,9 +107,10 @@ fun MyModalDrawer(
     val items = listOf(
         Routes.MyIngredients.route to "Mis Ingredientes",
         Routes.MyRecipes.route to "Mis recetas",
-        "recetas_pendientes" to "Recetas pendientes",
+        Routes.MyPendingRecipes.route to "Recetas pendientes",
+        Routes.MyFavouriteRecipes.route to "Recetas favoritas",
         Routes.MyShoppingHistory.route to "Últimas compras",
-        "ajustes" to "Ajustes"
+        //"ajustes" to "Ajustes"
     )
 
     var selectedRoute by remember { mutableStateOf<String?>(null) }

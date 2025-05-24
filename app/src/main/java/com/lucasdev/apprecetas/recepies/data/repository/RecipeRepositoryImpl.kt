@@ -22,12 +22,12 @@ class RecipeRepositoryImpl @Inject constructor(
         dataSource.removeFromFavorites(recipe)
     }
 
-    override suspend fun addToPending(recipe: RecipeModel) {
-        dataSource.addToPending(recipe)
+    override suspend fun addToPending(recipe: RecipeModel, shoppingListId: String) {
+        dataSource.addToPending(recipe, shoppingListId)
     }
 
-    override suspend fun removeFromPending(recipe: RecipeModel) {
-        dataSource.removeFromPending(recipe)
+    override suspend fun removeFromPending(recipe: RecipeModel, shoppingListId: String) {
+        dataSource.removeFromPending(recipe, shoppingListId)
     }
 
     override suspend fun getFavoriteRecipes(): List<RecipeModel> =
@@ -46,7 +46,9 @@ class RecipeRepositoryImpl @Inject constructor(
     override suspend fun updateRecipe(recipe: RecipeModel): Boolean =
         dataSource.updateRecipe(recipe)
 
-
+    override suspend fun markRecipeAsCooked(recipe: RecipeModel) {
+        dataSource.markRecipeAsCooked(recipe)
+    }
 
 
 }
