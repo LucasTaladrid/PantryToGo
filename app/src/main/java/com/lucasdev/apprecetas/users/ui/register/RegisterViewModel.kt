@@ -3,7 +3,7 @@ package com.lucasdev.apprecetas.users.ui.register
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.lucasdev.apprecetas.users.domain.repository.RegisterRepository
+import com.lucasdev.apprecetas.users.domain.usecase.RegisterUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,7 +11,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class RegisterViewModel @Inject constructor( private val registerRepository: RegisterRepository
+class RegisterViewModel @Inject constructor(
+    private val registerUserUseCase: RegisterUserUseCase
 ) : ViewModel() {
 
     private val _name = MutableStateFlow("")
@@ -41,8 +42,6 @@ class RegisterViewModel @Inject constructor( private val registerRepository: Reg
     private val _errorMessage = MutableStateFlow("")
     val errorMessage: StateFlow<String> = _errorMessage
 
-
-
     fun onRegisterChanged(name: String, email: String, password: String, confirmPassword: String) {
         _name.value = name
         _email.value = email
@@ -58,12 +57,11 @@ class RegisterViewModel @Inject constructor( private val registerRepository: Reg
                 && password == confirmPassword
     }
 
-
     fun registerUser() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                registerRepository.registerUser(
+                registerUserUseCase(
                     name = name.value,
                     email = email.value,
                     password = password.value
@@ -86,4 +84,3 @@ class RegisterViewModel @Inject constructor( private val registerRepository: Reg
         _showErrorDialog.value = false
     }
 }
-

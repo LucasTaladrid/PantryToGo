@@ -11,6 +11,7 @@ import androidx.navigation.compose.composable
 import com.lucasdev.apprecetas.users.ui.login.LoginScreen
 import com.lucasdev.apprecetas.users.ui.login.LoginScreenViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.firebase.auth.FirebaseAuth
 import com.lucasdev.apprecetas.ingredients.ui.myingredients.MyIngredientsScreen
 import com.lucasdev.apprecetas.ingredients.ui.pantry.PantryIngredientsViewModel
 import com.lucasdev.apprecetas.recepies.ui.favorites.MyFavoritesRecipesScreen
@@ -22,6 +23,7 @@ import com.lucasdev.apprecetas.recepies.ui.recipesmain.RecipesScreen
 import com.lucasdev.apprecetas.shopping.ui.myshoppinghistory.MyShoppingHistoryScreen
 import com.lucasdev.apprecetas.shopping.ui.shoppingmain.ShoppingListScreen
 import com.lucasdev.apprecetas.shopping.ui.shoppingmain.ShoppingListViewModel
+import com.lucasdev.apprecetas.users.ui.logout.LogoutScreen
 import com.lucasdev.apprecetas.users.ui.register.RegisterScreen
 import com.lucasdev.apprecetas.users.ui.register.RegisterViewModel
 
@@ -30,14 +32,31 @@ import com.lucasdev.apprecetas.users.ui.register.RegisterViewModel
 fun AppNavHost(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = Routes.Login.route
+        startDestination =Routes.Splash.route
     ) {
+        composable(Routes.Splash.route) {
+            LaunchedEffect(Unit) {
+                val user = FirebaseAuth.getInstance().currentUser
+                if (user != null) {
+                    navController.navigate(Routes.Ingredients.route) {
+                        popUpTo(Routes.Splash.route) { inclusive = true }
+                    }
+                } else {
+                    navController.navigate(Routes.Login.route) {
+                        popUpTo(Routes.Splash.route) { inclusive = true }
+                    }
+                }
+            }
+        }
+
         composable(Routes.Login.route) {
             val viewModel: LoginScreenViewModel = hiltViewModel()
             LoginScreen(
                 loginScreenViewModel = viewModel,
                 onLoginSuccess = {
-                    navController.navigate(Routes.Ingredients.route)
+                    navController.navigate(Routes.Ingredients.route) {
+                        popUpTo(Routes.Login.route) { inclusive = true }
+                    }
                 },
                 onNavigateToRegister = {
                     navController.navigate(Routes.Register.route)
@@ -69,6 +88,24 @@ fun AppNavHost(navController: NavHostController) {
             )
         }
 
+        composable(Routes.Shopping.route) {
+            val viewModel: ShoppingListViewModel = hiltViewModel()
+            val pantryIngredientsViewModel: PantryIngredientsViewModel = hiltViewModel()
+
+            ShoppingListScreen(
+                shoppingListViewModel = viewModel,
+                pantryIngredientsViewModel = pantryIngredientsViewModel,
+                navController = navController
+
+            )
+        }
+        composable(Routes.Recipes.route) {
+            val viewModel: RecipeViewModel = hiltViewModel()
+            RecipesScreen(
+                recipeViewModel = viewModel,
+                navController = navController
+            )
+        }
         composable(Routes.MyIngredients.route) {
             MyIngredientsScreen(
                 back = {
@@ -111,23 +148,17 @@ fun AppNavHost(navController: NavHostController) {
                 myFavoritesRecipesViewModel = hiltViewModel()
             )
         }
-
-        composable(Routes.Shopping.route) {
-            val viewModel: ShoppingListViewModel = hiltViewModel()
-            val pantryIngredientsViewModel: PantryIngredientsViewModel = hiltViewModel()
-
-            ShoppingListScreen(
-                shoppingListViewModel = viewModel,
-                pantryIngredientsViewModel = pantryIngredientsViewModel,
-                navController = navController
-
-            )
-        }
-        composable(Routes.Recipes.route) {
-            val viewModel: RecipeViewModel = hiltViewModel()
-            RecipesScreen(
-                recipeViewModel = viewModel,
-                navController = navController
+        composable(Routes.Settings.route) {
+            LogoutScreen(
+                onBackClick = {
+                    navController.navigateUp()
+                },
+                onNavigateToLogin = {
+                    navController.navigate(Routes.Login.route) {
+                        popUpTo(Routes.Ingredients.route) { inclusive = true }
+                    }
+                },
+                logoutViewModel = hiltViewModel()
             )
         }
     }

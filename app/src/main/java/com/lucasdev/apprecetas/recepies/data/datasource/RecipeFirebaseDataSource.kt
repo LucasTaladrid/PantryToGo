@@ -10,9 +10,14 @@ import com.lucasdev.apprecetas.recepies.domain.model.RecipeModel
 import com.lucasdev.apprecetas.shopping.data.datasource.ShoppingListFirebaseDataSource
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingIngredientModel
 import kotlinx.coroutines.tasks.await
+import java.math.BigDecimal
+import java.math.RoundingMode
+import java.text.DecimalFormat
 import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
+import kotlin.math.pow
+import kotlin.math.roundToInt
 
 class RecipeFirebaseDataSource @Inject constructor() {
     private val db = Firebase.firestore
@@ -286,26 +291,44 @@ class RecipeFirebaseDataSource @Inject constructor() {
         }
     }
 
+
     suspend fun markRecipeAsCooked(recipe: RecipeModel) {
         try {
             // 1. Eliminar de pendientes
             pendingRef().document(recipe.id).delete().await()
+            Log.d("markRecipeAsCooked", "Receta eliminada de pendientes: ${recipe.id}")
+
+            fun formatQuantity(quantity: Double): String {
+                val df = DecimalFormat("#.###") // Hasta 3 decimales sin ceros innecesarios
+                return df.format(quantity)
+            }
+
+            fun roundToDecimals(value: Double, decimals: Int): Double {
+                return BigDecimal(value).setScale(decimals, RoundingMode.HALF_UP).toDouble()
+            }
 
             // 2. Obtener snapshot actual de la despensa
             val pantrySnapshot = pantryRef().get().await()
             val pantryItems = pantrySnapshot.documents.mapNotNull { it.toObject(PantryIngredientModel::class.java) }
 
-            // 3. Recorremos los ingredientes de la receta
             for (ingredient in recipe.ingredients) {
                 val pantryItem = pantryItems.find {
                     it.ingredientId == ingredient.ingredientId && it.unit.name == ingredient.unit.name
                 }
 
                 if (pantryItem != null) {
-                    val updatedQty = pantryItem.quantity - ingredient.quantity
-                    val newQty = if (updatedQty < 0) 0.0 else updatedQty
+                    val rawUpdatedQty = pantryItem.quantity - ingredient.quantity
+                    val updatedQty = if (rawUpdatedQty < 0) 0.0 else roundToDecimals(rawUpdatedQty, 3) // Redondeo aquí
 
-                    pantryRef().document(pantryItem.ingredientId).update("quantity", newQty).await()
+                    val epsilon = 0.00001
+
+                    if (updatedQty < epsilon) {
+                        pantryRef().document(pantryItem.ingredientId).delete().await()
+                        Log.d("markRecipeAsCooked", "Ingrediente eliminado de la despensa: ${ingredient.name}")
+                    } else {
+                        pantryRef().document(pantryItem.ingredientId).update("quantity", updatedQty).await()
+                        Log.d("markRecipeAsCooked", "Cantidad actualizada para ${ingredient.name}: ${formatQuantity(updatedQty)} ${ingredient.unit.name}")
+                    }
                 } else {
                     Log.w("markRecipeAsCooked", "Ingrediente no encontrado en despensa: ${ingredient.name}")
                 }
@@ -317,6 +340,7 @@ class RecipeFirebaseDataSource @Inject constructor() {
             Log.e("markRecipeAsCooked", "Error al marcar receta como cocinada", e)
         }
     }
+
 
 
 }

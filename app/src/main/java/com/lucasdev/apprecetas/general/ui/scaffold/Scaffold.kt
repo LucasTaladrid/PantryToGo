@@ -110,7 +110,7 @@ fun MyModalDrawer(
         Routes.MyPendingRecipes.route to "Recetas pendientes",
         Routes.MyFavouriteRecipes.route to "Recetas favoritas",
         Routes.MyShoppingHistory.route to "Últimas compras",
-        //"ajustes" to "Ajustes"
+        Routes.Settings.route to "Ajustes"
     )
 
     var selectedRoute by remember { mutableStateOf<String?>(null) }

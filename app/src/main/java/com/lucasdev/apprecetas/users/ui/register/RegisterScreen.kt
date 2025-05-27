@@ -32,7 +32,6 @@ fun RegisterScreen(
     backLoginScreen: () -> Unit
 ) {
 
-    //Variables to save register information
     val name by registerViewModel.name.collectAsState()
     val email by registerViewModel.email.collectAsState()
     val password by registerViewModel.password.collectAsState()
@@ -42,10 +41,6 @@ fun RegisterScreen(
     val showSuccessDialog by registerViewModel.showSuccessDialog.collectAsState()
     val showErrorDialog by registerViewModel.showErrorDialog.collectAsState()
     val errorMessage by registerViewModel.errorMessage.collectAsState()
-
-    //Manage password visibility
-    var passwordVisible by remember { mutableStateOf(false) }
-    var confirmPasswordVisible by remember { mutableStateOf(false) }
 
     fun updateFields(
         newName: String = name,

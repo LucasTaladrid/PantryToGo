@@ -153,7 +153,7 @@ fun Body(
         //SocialLogin()
     }
 }
-//todo cambiar el icono por el de google y permitir logearse con el
+//todo add this feature in the future,allow login with google account
 /*
 @Composable
 fun SocialLogin() {

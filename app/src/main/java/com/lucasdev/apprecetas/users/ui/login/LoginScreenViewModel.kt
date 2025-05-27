@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.firestore
+import com.lucasdev.apprecetas.users.domain.usecase.IsAdminUseCase
+import com.lucasdev.apprecetas.users.domain.usecase.LoginUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,16 +15,19 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginScreenViewModel @Inject constructor(private val auth:FirebaseAuth): ViewModel() {
+class LoginScreenViewModel @Inject constructor(
+    private val loginUserUseCase: LoginUserUseCase,
+    private val isAdminUseCase: IsAdminUseCase,
+) : ViewModel() {
 
     private val _email = MutableStateFlow("")
     val email: StateFlow<String> = _email
 
-    private val _isAdmin = MutableStateFlow(false)
-    val isAdmin: StateFlow<Boolean> = _isAdmin
-
     private val _password = MutableStateFlow("")
     val password: StateFlow<String> = _password
+
+    private val _isAdmin = MutableStateFlow(false)
+    val isAdmin: StateFlow<Boolean> = _isAdmin
 
     private val _isLoginEnable = MutableStateFlow(false)
     val loginEnable: StateFlow<Boolean> = _isLoginEnable
@@ -30,11 +35,10 @@ class LoginScreenViewModel @Inject constructor(private val auth:FirebaseAuth): V
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-
-    fun onLoginChanged(email: String, password: String){
-        _email.value=email
-        _password.value=password
-        _isLoginEnable.value=enableLogin(email, password)
+    fun onLoginChanged(email: String, password: String) {
+        _email.value = email
+        _password.value = password
+        _isLoginEnable.value = enableLogin(email, password)
     }
 
     fun loginUser(
@@ -45,57 +49,25 @@ class LoginScreenViewModel @Inject constructor(private val auth:FirebaseAuth): V
     ) {
         viewModelScope.launch {
             _isLoading.value = true
-
-            // Verificamos si el correo está registrado en la colección "users"
-            Firebase.firestore.collection("users")
-                .whereEqualTo("email", email)
-                .get()
-                .addOnSuccessListener { documents ->
-                    if (!documents.isEmpty) {
-                        // El correo existe, intentamos iniciar sesión
-                        auth.signInWithEmailAndPassword(email, password)
-                            .addOnCompleteListener { task ->
-                                _isLoading.value = false
-                                if (task.isSuccessful) {
-                                    val userId = auth.currentUser?.uid
-                                    if (userId != null) {
-                                        Firebase.firestore.collection("users").document(userId)
-                                            .get()
-                                            .addOnSuccessListener { documentSnapshot ->
-                                                if (documentSnapshot.exists()) {
-                                                    val isAdmin =
-                                                        documentSnapshot.getBoolean("isAdmin") ?: false
-                                                    _isAdmin.value = isAdmin
-                                                    onSuccess()
-                                                } else {
-                                                    onError("Usuario no encontrado")
-                                                }
-                                            }
-                                            .addOnFailureListener {
-                                                onError("Error al verificar el usuario")
-                                            }
-                                    }
-                                } else {
-                                    onError("Contraseña incorrecta")
-                                }
-                            }
-                    } else {
-                        _isLoading.value = false
-                        onError("El usuario no existe")
-                    }
-                }
-                .addOnFailureListener {
+            val result = loginUserUseCase(email, password)
+            if (result.isSuccess) {
+                // Si login correcto, verificar si es admin
+                val isAdminResult = runCatching { isAdminUseCase() }
+                if (isAdminResult.isSuccess) {
+                    _isAdmin.value = isAdminResult.getOrDefault(false)
                     _isLoading.value = false
-                    onError("Error al verificar el usuario")
+                    onSuccess()
+                } else {
+                    _isLoading.value = false
+                    onError("Error al verificar si es admin")
                 }
+            } else {
+                _isLoading.value = false
+                onError(result.exceptionOrNull()?.message ?: "Error al iniciar sesión")
+            }
         }
     }
 
-
-
     private fun enableLogin(email: String, password: String) =
         Patterns.EMAIL_ADDRESS.matcher(email).matches() && password.length > 6
-
-
-
 }

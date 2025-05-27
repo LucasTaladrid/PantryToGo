@@ -1,5 +1,6 @@
 package com.lucasdev.apprecetas.recepies.ui.pending
 
+import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -126,6 +127,7 @@ class MyPendingRecipesViewModel @Inject constructor(
             }
         }
 
+
         fun togglePending(recipe: RecipeModel) {
             viewModelScope.launch {
                 val shoppingLists = getShoppingListsUseCase()
@@ -147,7 +149,5 @@ class MyPendingRecipesViewModel @Inject constructor(
         }
         refresh()
     }
-
-
 
     }
