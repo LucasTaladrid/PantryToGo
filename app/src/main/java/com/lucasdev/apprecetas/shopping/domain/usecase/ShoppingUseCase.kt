@@ -1,5 +1,7 @@
 package com.lucasdev.apprecetas.shopping.domain.usecase
 
+import com.lucasdev.apprecetas.shopping.domain.model.ShoppingHistoryModel
+import com.lucasdev.apprecetas.shopping.domain.model.ShoppingIngredientModel
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingListModel
 import com.lucasdev.apprecetas.shopping.domain.repository.ShoppingListRepository
 import javax.inject.Inject
@@ -16,14 +18,71 @@ class GetShoppingListsUseCase @Inject constructor(
     suspend operator fun invoke() = repository.getShoppingLists()
 }
 
-class UpdateShoppingListUseCase @Inject constructor(
+class GetItemsForListUseCase @Inject constructor(
     private val repository: ShoppingListRepository
 ) {
-    suspend operator fun invoke(list: ShoppingListModel) = repository.updateShoppingList(list)
+    suspend operator fun invoke(listId: String) = repository.getItemsForList(listId)
 }
 
-class DeleteShoppingListUseCase @Inject constructor(
+class UpdateIngredientCheckedStatusUseCase @Inject constructor(
     private val repository: ShoppingListRepository
 ) {
-    suspend operator fun invoke(id: String) = repository.deleteShoppingList(id)
+    suspend operator fun invoke(listId: String, itemId: String, checked: Boolean) =
+        repository.updateIngredientCheckedStatus(listId, itemId, checked)
 }
+
+class AddIngredientToShoppingListUseCase @Inject constructor(
+    private val repository: ShoppingListRepository
+) {
+    suspend operator fun invoke(listId: String, ingredient: ShoppingIngredientModel) =
+        repository.addIngredientToShoppingList(listId, ingredient)
+}
+
+class DeleteItemFromShoppingListUseCase @Inject constructor(
+    private val repository: ShoppingListRepository
+) {
+    suspend operator fun invoke(listId: String, itemId: String) =
+        repository.deleteItemFromList(listId, itemId)
+}
+
+class UpdateItemInShoppingListUseCase @Inject constructor(
+    private val repository: ShoppingListRepository
+) {
+    suspend operator fun invoke(listId: String, item: ShoppingIngredientModel) =
+        repository.updateItemInShoppingList(listId, item)
+}
+
+class SaveShoppingHistoryUseCase @Inject constructor(
+    private val repository: ShoppingListRepository
+) {
+    suspend operator fun invoke(history: ShoppingHistoryModel): ShoppingHistoryModel? {
+        return repository.saveShoppingHistory(history)
+    }
+}
+
+class GetRecentShoppingHistoryUseCase @Inject constructor(
+    private val repository: ShoppingListRepository
+) {
+    suspend operator fun invoke(limit: Long = 5): List<ShoppingHistoryModel> {
+        return repository.getRecentShoppingHistory(limit)
+    }
+}
+
+class DeleteShoppingHistoryByIdUseCase @Inject constructor(
+    private val repository: ShoppingListRepository
+) {
+    suspend operator fun invoke(historyId: String): Boolean {
+        return repository.deleteShoppingHistoryById(historyId)
+
+    }
+}
+
+class GetItemsForHistoryUseCase @Inject constructor(
+    private val repository: ShoppingListRepository
+) {
+    suspend operator fun invoke(historyId: String): List<ShoppingIngredientModel> {
+        return repository.getItemsForHistory(historyId)
+    }
+}
+
+

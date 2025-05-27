@@ -20,11 +20,20 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.lucasdev.apprecetas.general.ui.fabButton.FAB
+import com.lucasdev.apprecetas.general.ui.appButtons.FAB
 import kotlinx.coroutines.launch
 
+/**
+ * Scaffold composable with a top app bar that includes a back button,
+ * an optional floating action button, and a snackbar host.
+ *
+ * @param title The title to display in the top app bar.
+ * @param onBackClick Callback invoked when the back button in the top bar is clicked.
+ * @param content The main screen content as a composable lambda, receives inner padding values.
+ * @param onFabClick Optional callback for the floating action button click. If null, FAB is not shown.
+ */
+//todo cambiar colores
 @Composable
 fun AppScaffoldWithoutBottomBar(
     title: String,
@@ -64,6 +73,12 @@ fun AppScaffoldWithoutBottomBar(
     }
 }
 
+/**
+ * A top app bar with a title and a back navigation button.
+ *
+ * @param title The text to display as the title in the app bar.
+ * @param onBackClick Callback invoked when the back button is pressed.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBarWithBackButton(title: String, onBackClick: () -> Unit) {

@@ -1,6 +1,5 @@
 package com.lucasdev.apprecetas.users.domain.di
 
-import com.lucasdev.apprecetas.users.data.datasource.RegisterDataSource
 import com.lucasdev.apprecetas.users.data.datasource.RegisterFirebaseDataSource
 import com.lucasdev.apprecetas.users.domain.repository.RegisterRepository
 import com.lucasdev.apprecetas.users.domain.repository.RegisterRepositoryImpl
@@ -20,9 +19,5 @@ abstract class RegisterRepositoryModule {
         registerRepositoryImpl: RegisterRepositoryImpl
     ): RegisterRepository
 
-    @Binds
-    @Singleton
-    abstract fun bindRegisterDataSource(
-        registerFirebaseDataSource: RegisterFirebaseDataSource
-    ): RegisterDataSource
+
 }

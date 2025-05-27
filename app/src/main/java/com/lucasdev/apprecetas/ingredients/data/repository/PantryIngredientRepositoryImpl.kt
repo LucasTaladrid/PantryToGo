@@ -24,6 +24,10 @@ class PantryIngredientRepositoryImpl @Inject constructor(
         return dataSource.getIngredientById(id)
     }
 
+    override suspend fun getIngredientByIngredientId(ingredientId: String): PantryIngredientModel? {
+        return dataSource.getIngredientByIngredientId(ingredientId)
+    }
+
     override suspend fun addIngredientsToPantryFromShopping(ingredients: List<PantryIngredientModel>): List<PantryIngredientModel> {
        return dataSource.addIngredientsToPantry(ingredients)
     }

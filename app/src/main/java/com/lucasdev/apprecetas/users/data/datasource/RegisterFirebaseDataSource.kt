@@ -9,16 +9,33 @@ import javax.inject.Inject
 class RegisterFirebaseDataSource @Inject constructor(
     private val auth: FirebaseAuth,
     private val firestore: FirebaseFirestore
-) : RegisterDataSource {
+)  {
 
-    override suspend fun registerAuth(email: String, password: String): String {
+     suspend fun registerAuth(email: String, password: String): String {
         val result = auth.createUserWithEmailAndPassword(email, password).await()
         return result.user?.uid ?: throw Exception("Error creating user")
     }
 
-    override suspend fun saveUserData(user: UserModel) {
+     suspend fun saveUserData(user: UserModel) {
         firestore.collection("users")
             .document(user.uid)
+            .set(user)
+            .await()
+    }
+
+    suspend fun registerUser(name: String, email: String, password: String) {
+        val result = auth.createUserWithEmailAndPassword(email, password).await()
+        val uid = result.user?.uid ?: throw Exception("Error creating user")
+
+        val user = UserModel(
+            uid = uid,
+            name = name,
+            email = email,
+            isAdmin = false
+        )
+
+        firestore.collection("users")
+            .document(uid)
             .set(user)
             .await()
     }
