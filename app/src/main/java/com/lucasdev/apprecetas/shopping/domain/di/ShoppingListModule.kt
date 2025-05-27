@@ -4,9 +4,7 @@ import com.lucasdev.apprecetas.shopping.data.datasource.ShoppingListFirebaseData
 import com.lucasdev.apprecetas.shopping.data.repository.ShoppingListRepositoryImpl
 import com.lucasdev.apprecetas.shopping.domain.repository.ShoppingListRepository
 import com.lucasdev.apprecetas.shopping.domain.usecase.AddShoppingListUseCase
-import com.lucasdev.apprecetas.shopping.domain.usecase.DeleteShoppingListUseCase
 import com.lucasdev.apprecetas.shopping.domain.usecase.GetShoppingListsUseCase
-import com.lucasdev.apprecetas.shopping.domain.usecase.UpdateShoppingListUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -37,15 +35,5 @@ object ShoppingListModule {
         repository: ShoppingListRepository
     ): GetShoppingListsUseCase = GetShoppingListsUseCase(repository)
 
-    @Provides
-    @ViewModelScoped
-    fun provideUpdateShoppingListUseCase(
-        repository: ShoppingListRepository
-    ): UpdateShoppingListUseCase = UpdateShoppingListUseCase(repository)
 
-    @Provides
-    @ViewModelScoped
-    fun provideDeleteShoppingListUseCase(
-        repository: ShoppingListRepository
-    ): DeleteShoppingListUseCase = DeleteShoppingListUseCase(repository)
 }

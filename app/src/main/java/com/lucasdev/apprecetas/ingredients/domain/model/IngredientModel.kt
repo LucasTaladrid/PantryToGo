@@ -5,12 +5,7 @@ data class IngredientModel(
     val name:String="",
     val category: CategoryModel= CategoryModel(),
     val unit: UnitTypeModel=UnitTypeModel(),
-
-){
-fun withNewId(newId: String): IngredientModel {
-    return this.copy(id = newId)
-}
-}
+)
 
 data class PantryIngredientModel(
     val id: String = "",
@@ -20,7 +15,6 @@ data class PantryIngredientModel(
     val unit: UnitTypeModel = UnitTypeModel(),
     val quantity: Double =0.0
 )
-
 
 data class IngredientSection(
     val category: String,
