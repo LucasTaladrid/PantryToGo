@@ -16,8 +16,16 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.lucasdev.apprecetas.R
 import com.lucasdev.apprecetas.ui.navigation.Routes
 
-//TODO conseguir que los iconos se puedan clickar
+
 val orange = Color(0xFFFFA500)
+/**
+ * Bottom navigation bar with three navigation items: Ingredients, Recipes, and Shopping.
+ *
+ * The navigation bar updates the selected item based on the current route from the [navController].
+ * Clicking on an item navigates to the corresponding route, saving and restoring navigation state.
+ *
+ * @param navController The [NavHostController] used to control navigation between destinations.
+ */
 @Composable
 fun BottomBarNavigation(navController: NavHostController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()

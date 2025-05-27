@@ -1,4 +1,4 @@
-package com.lucasdev.apprecetas.shopping.ui
+package com.lucasdev.apprecetas.shopping.ui.myshoppinghistory
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable

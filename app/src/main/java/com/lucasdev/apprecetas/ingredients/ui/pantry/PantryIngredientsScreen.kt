@@ -1,4 +1,4 @@
-package com.lucasdev.apprecetas.ingredients.ui
+package com.lucasdev.apprecetas.ingredients.ui.pantry
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

@@ -1,4 +1,4 @@
-package com.lucasdev.apprecetas.recepies.ui
+package com.lucasdev.apprecetas.recepies.ui.recipesmain
 
 import android.util.Log
 import androidx.compose.runtime.getValue
@@ -19,8 +19,15 @@ import com.lucasdev.apprecetas.ingredients.domain.usecase.GetIngredientsUseCase
 import com.lucasdev.apprecetas.ingredients.domain.usecase.GetUnitTypeUseCase
 import com.lucasdev.apprecetas.ingredients.domain.usecase.GetUserIngredientUseCase
 import com.lucasdev.apprecetas.recepies.domain.model.RecipeModel
+import com.lucasdev.apprecetas.recepies.domain.usecase.AddRecipeToFavoritesUseCase
+import com.lucasdev.apprecetas.recepies.domain.usecase.AddRecipeToPendingUseCase
 import com.lucasdev.apprecetas.recepies.domain.usecase.AddRecipeUseCase
-import com.lucasdev.apprecetas.recepies.domain.usecase.GetRecipeUseCase
+import com.lucasdev.apprecetas.recepies.domain.usecase.GetFavoritesRecipesUseCase
+import com.lucasdev.apprecetas.recepies.domain.usecase.GetPendingRecipesUseCase
+import com.lucasdev.apprecetas.recepies.domain.usecase.GetCommonRecipesUseCase
+import com.lucasdev.apprecetas.recepies.domain.usecase.RemoveRecipeFromFavoritesUseCase
+import com.lucasdev.apprecetas.recepies.domain.usecase.RemoveRecipeFromPendingUseCase
+import com.lucasdev.apprecetas.shopping.domain.usecase.GetShoppingListsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,8 +40,15 @@ class RecipeViewModel @Inject constructor(
     private val getIngredientsUseCase: GetIngredientsUseCase,
     private val getUnitTypeUseCase: GetUnitTypeUseCase,
     private val getCategoriesUseCase: GetCategoriesUseCase,
-    private val getRecipeUseCase: GetRecipeUseCase,
-    private val addRecipeUseCase: AddRecipeUseCase
+    private val getCommonRecipesUseCase: GetCommonRecipesUseCase,
+    private val addRecipeUseCase: AddRecipeUseCase,
+    private val addToFavoritesUseCase: AddRecipeToFavoritesUseCase,
+    private val removeFromFavoritesUseCase: RemoveRecipeFromFavoritesUseCase,
+    private val addToPendingUseCase: AddRecipeToPendingUseCase,
+    private val removeFromPendingUseCase: RemoveRecipeFromPendingUseCase,
+    private val getFavoriteRecipesUseCase: GetFavoritesRecipesUseCase,
+    private val getPendingRecipesUseCase: GetPendingRecipesUseCase,
+    private val getShoppingListsUseCase: GetShoppingListsUseCase
 ) : ViewModel() {
 
     private val _userName = MutableStateFlow("")
@@ -61,6 +75,12 @@ class RecipeViewModel @Inject constructor(
     private val _recipes = MutableStateFlow<List<RecipeModel>>(emptyList())
     val recipes: StateFlow<List<RecipeModel>> = _recipes
 
+    private val _favoriteRecipes = MutableStateFlow<List<RecipeModel>>(emptyList())
+    val favoriteRecipes: StateFlow<List<RecipeModel>> = _favoriteRecipes
+
+    private val _pendingRecipes = MutableStateFlow<List<RecipeModel>>(emptyList())
+    val pendingRecipes: StateFlow<List<RecipeModel>> = _pendingRecipes
+
     private val _isSaving = MutableStateFlow(false)
     val isSaving:  StateFlow<Boolean> = _isSaving
 
@@ -81,6 +101,8 @@ class RecipeViewModel @Inject constructor(
             loadIngredients()
             loadCategoriesAndUnits()
             loadRecipes()
+            loadFavoriteRecipes()
+            loadPendingRecipes()
         }
     }
     fun refresh() {
@@ -88,6 +110,8 @@ class RecipeViewModel @Inject constructor(
             loadIngredients()
             loadCategoriesAndUnits()
             loadRecipes()
+            loadFavoriteRecipes()
+            loadPendingRecipes()
 
         }
     }
@@ -97,7 +121,7 @@ class RecipeViewModel @Inject constructor(
             _isLoading.value = true
             _errorMessage.value = null
             try {
-                val result = getRecipeUseCase()
+                val result = getCommonRecipesUseCase()
                 _recipes.value=result
             } catch (e: Exception) {
                 _errorMessage.value = "Error al cargar recetas"
@@ -143,6 +167,49 @@ class RecipeViewModel @Inject constructor(
         _units.value = unitsList
     }
 
+    private suspend fun loadFavoriteRecipes() {
+        _favoriteRecipes.value = getFavoriteRecipesUseCase()
+        Log.d("ViewModel", "Favoritos cargados: ${favoriteRecipes.value}")
+    }
+
+    private suspend fun loadPendingRecipes() {
+        _pendingRecipes.value = getPendingRecipesUseCase()
+        Log.d("ViewModel", "Pendientes cargados: ${pendingRecipes.value}")
+    }
+
+    private fun isFavorite(recipe: RecipeModel): Boolean {
+        return _favoriteRecipes.value.any { it.id == recipe.id }
+    }
+
+    private fun isPending(recipe: RecipeModel): Boolean {
+        return _pendingRecipes.value.any { it.id == recipe.id }
+    }
+
+    fun toggleFavorite(recipe: RecipeModel) {
+        viewModelScope.launch {
+            if (isFavorite(recipe)) {
+                removeFromFavoritesUseCase(recipe)
+            } else {
+                addToFavoritesUseCase(recipe)
+            }
+            loadFavoriteRecipes()
+        }
+    }
+
+    fun togglePending(recipe: RecipeModel) {
+        viewModelScope.launch {
+            val shoppingLists = getShoppingListsUseCase()
+            val activeShoppingList = shoppingLists.firstOrNull()
+            if (isPending(recipe) && activeShoppingList!=null) {
+                removeFromPendingUseCase(recipe,activeShoppingList.id)
+            } else {
+                if(activeShoppingList!=null)
+                    addToPendingUseCase(recipe,activeShoppingList.id)
+            }
+            loadPendingRecipes()
+        }
+    }
+
     private fun getUserName() {
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser != null) {
@@ -168,15 +235,10 @@ class RecipeViewModel @Inject constructor(
         }
     }
 
-
-
-
-
     fun onNameChange(new: String) {
         recipeName = new
     }
 
-    /** UI llama a esto para añadir o acumular un ingrediente con cantidad */
     fun addOrUpdateIngredient(item: PantryIngredientModel) {
         val idx = _recipeIngredients.indexOfFirst { it.ingredientId == item.ingredientId }
         if (idx >= 0) {
@@ -187,17 +249,14 @@ class RecipeViewModel @Inject constructor(
         }
     }
 
-    /** UI llama a esto para eliminar un ingrediente de la receta */
     fun removeIngredient(item: PantryIngredientModel) {
         _recipeIngredients.remove(item)
     }
 
-    /** UI llama a esto cuando cambia el campo “pasos” */
     fun onStepsChange(text: String) {
         steps = text
     }
 
-    /** Lanza el caso de uso de “añadir receta” */
     fun createRecipe(recipeModel: RecipeModel, onSuccess: () -> Unit) {
 
         if (recipeModel.name.isBlank()
@@ -223,5 +282,11 @@ class RecipeViewModel @Inject constructor(
             }
         }
     }
+
+    fun updateIngredient(updated: PantryIngredientModel) {
+        val idx = _recipeIngredients.indexOfFirst { it.ingredientId == updated.ingredientId }
+        if (idx >= 0) _recipeIngredients[idx] = updated
+    }
+
 }
 

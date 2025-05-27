@@ -9,6 +9,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 //todo, cambiar el color, añadir funcionalidad, en las recetas, añade recetas, en la de ingredientes añade ingredientes.
+/**
+ * Floating Action Button (FAB) with an "add" icon.
+ *
+ * @param onFabClick Lambda function to be invoked when the FAB is clicked.
+ */
 @Composable
 fun FAB(onFabClick: () -> Unit) {
     FloatingActionButton(

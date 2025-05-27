@@ -1,4 +1,4 @@
-package com.lucasdev.apprecetas.shopping.ui
+package com.lucasdev.apprecetas.shopping.ui.shoppingmain
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -10,8 +10,7 @@ import com.lucasdev.apprecetas.ingredients.domain.model.CategoryModel
 import com.lucasdev.apprecetas.ingredients.domain.model.IngredientModel
 import com.lucasdev.apprecetas.ingredients.domain.usecase.GetCategoriesUseCase
 import com.lucasdev.apprecetas.ingredients.domain.usecase.GetIngredientsUseCase
-import com.lucasdev.apprecetas.ingredients.domain.usecase.UpdateUserPantryIngredientUseCase
-import com.lucasdev.apprecetas.ingredients.ui.PantryIngredientsViewModel
+import com.lucasdev.apprecetas.ingredients.ui.pantry.PantryIngredientsViewModel
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingHistoryModel
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingIngredientModel
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingItemSection
