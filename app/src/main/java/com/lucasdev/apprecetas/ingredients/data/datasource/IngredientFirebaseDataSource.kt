@@ -11,15 +11,29 @@ import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
+/**
+ * Firebase data source responsible for managing ingredient-related operations.
+ * It supports CRUD operations for both common (admin-level) and user-specific ingredients.
+ *
+ * @property dataSourcePantry Used for syncing ingredient changes with user pantries.
+ * @property dataSourceShoppingList Used for syncing ingredient changes with shopping lists.
+ */
 class IngredientFirebaseDataSource @Inject constructor( private val dataSourcePantry: PantryIngredientFirebaseDataSource,private val dataSourceShoppingList: ShoppingListFirebaseDataSource) {
 
     private val db = Firebase.firestore
     private val auth = Firebase.auth
     private val uid = auth.currentUser?.uid ?: "anon"
 
+    /**
+     * Checks if an ingredient with the given name already exists
+     * in either the common or user-specific ingredient collections.
+     *
+     * @param name The name of the ingredient to check.
+     * @return True if it exists, false otherwise.
+     */
     private suspend fun ingredientExists(name: String): Boolean {
-        val nameLower = name.trim().lowercase()
 
+        val nameLower = name.trim().lowercase()
         val commonExists = commonIngredientsRef()
             .whereEqualTo("name", nameLower)
             .get()
@@ -35,12 +49,23 @@ class IngredientFirebaseDataSource @Inject constructor( private val dataSourcePa
         return commonExists || userExists
     }
 
+    /**
+     * Returns a reference to the user's ingredient collection.
+     */
     private fun userIngredientsRef() = db.collection("users")
         .document(uid)
         .collection("ingredients")
 
+    /**
+     * Returns a reference to the shared (common) ingredients collection.
+     */
     private fun commonIngredientsRef() = db.collection("ingredients")
 
+    /**
+     * Determines whether the current user is an admin.
+     *
+     * @return True if admin, false otherwise.
+     */
     suspend fun isAdmin(): Boolean = suspendCoroutine { cont ->
         db.collection("users").document(uid).get()
             .addOnSuccessListener { snapshot ->
@@ -50,6 +75,11 @@ class IngredientFirebaseDataSource @Inject constructor( private val dataSourcePa
             .addOnFailureListener { cont.resume(false) }
     }
 
+    /**
+     * Retrieves all common (admin-level) ingredients.
+     *
+     * @return A list of common [IngredientModel].
+     */
     private suspend fun getCommonIngredients(): List<IngredientModel> = suspendCoroutine { cont ->
         commonIngredientsRef().get()
             .addOnSuccessListener { snapshot ->
@@ -59,6 +89,11 @@ class IngredientFirebaseDataSource @Inject constructor( private val dataSourcePa
             .addOnFailureListener { cont.resume(emptyList()) }
     }
 
+    /**
+     * Retrieves all user-specific ingredients.
+     *
+     * @return A list of user [IngredientModel].
+     */
     suspend fun getUserIngredients(): List<IngredientModel> = suspendCoroutine { cont ->
         userIngredientsRef().get()
             .addOnSuccessListener { snapshot ->
@@ -68,13 +103,24 @@ class IngredientFirebaseDataSource @Inject constructor( private val dataSourcePa
             .addOnFailureListener { cont.resume(emptyList()) }
     }
 
+    /**
+     * Retrieves all ingredients, including both user-specific and common ones.
+     *
+     * @return A combined list of all [IngredientModel].
+     */
     suspend fun getIngredients(): List<IngredientModel> {
         val common = getCommonIngredients()
         val user = getUserIngredients()
         return common + user
     }
 
-    //todo no genera errores pero sería bueno poder eliminar los ingredeintes propios si se agrega un ingrediente común igual.
+    /**
+     * Adds a new ingredient if it doesn't already exist.
+     * The ingredient will be added to either the common or user-specific collection depending on admin status.
+     *
+     * @param ingredient The ingredient to add.
+     * @return True if added successfully, false otherwise.
+     */
     suspend fun addIngredient(ingredient: IngredientModel): Boolean {
         val exists = ingredientExists(ingredient.name)
         if (exists) return false
@@ -96,6 +142,13 @@ class IngredientFirebaseDataSource @Inject constructor( private val dataSourcePa
         }
     }
 
+    /**
+     * Updates an existing ingredient in the correct collection.
+     * Also updates all pantry and shopping list references to ensure consistency.
+     *
+     * @param ingredient The updated ingredient.
+     * @return True if updated successfully, false otherwise.
+     */
     suspend fun updateIngredient(ingredient: IngredientModel): Boolean {
         val admin = isAdmin()
         val ref = if (admin) commonIngredientsRef().document(ingredient.id) else userIngredientsRef().document(ingredient.id)
@@ -112,6 +165,13 @@ class IngredientFirebaseDataSource @Inject constructor( private val dataSourcePa
         }
     }
 
+    /**
+     * Deletes an ingredient by ID. Deletes from common or user-specific collections based on admin status.
+     * Also removes it from related pantry data.
+     *
+     * @param id The ID of the ingredient to delete.
+     * @return True if deleted successfully, false otherwise.
+     */
     suspend fun deleteIngredient(id: String): Boolean {
         val admin = isAdmin()
         val ref = if (admin) commonIngredientsRef() else userIngredientsRef()

@@ -63,6 +63,7 @@ fun MyIngredientsScreen(myIngredientsViewModel: MyIngredientsViewModel, back: ()
     val selectedIngredient by myIngredientsViewModel.selectedIngredient.collectAsState()
     val isAdmin by myIngredientsViewModel.isAdmin.collectAsState()
     val duplicateIngredient by myIngredientsViewModel.duplicateIngredient.collectAsState()
+
     LaunchedEffect(isAdmin) {
         myIngredientsViewModel.loadIngredientsForDisplay()
     }
@@ -72,8 +73,6 @@ fun MyIngredientsScreen(myIngredientsViewModel: MyIngredientsViewModel, back: ()
         content = { innerPadding ->
 
             if (ingredientSections.isEmpty() || ingredientSections.all { it.ingredients.isEmpty() }) {
-                // Mostrar texto cuando no hay ingredientes
-
                 Text(
                     text = buildAnnotatedString {
                         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp)) {
