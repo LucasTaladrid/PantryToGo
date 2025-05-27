@@ -188,7 +188,6 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
         }
     }
 
-
     suspend fun getRecentShoppingHistory(limit: Long = 5): List<ShoppingHistoryModel> {
         return db.collection("users")
             .document(uid)
@@ -232,6 +231,30 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
             emptyList()
         }
     }
+
+    suspend fun subtractIngredientsFromShoppingList(listId: String, ingredients: List<ShoppingIngredientModel>) {
+        for (ingredient in ingredients) {
+            try {
+                val docRef = shoppingListItemsRef(listId).document(ingredient.ingredientId)
+                val snapshot = docRef.get().await()
+
+                if (snapshot.exists()) {
+                    val existing = snapshot.toObject(ShoppingIngredientModel::class.java)
+                    val newQuantity = (existing?.quantity ?: 0.0) - ingredient.quantity
+
+                    if (newQuantity <= 0.0) {
+                        docRef.delete().await()
+                    } else {
+                        val updated = existing!!.copy(quantity = newQuantity)
+                        docRef.set(updated).await()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("ShoppingListDataSource", "Error subtracting ingredient ${ingredient.ingredientId}", e)
+            }
+        }
+    }
+
 
 
 

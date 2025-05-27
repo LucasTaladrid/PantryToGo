@@ -8,7 +8,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
-
+/**
+ * Custom button with configurable colors, width, and enabled state.
+ *
+ * @param text The text displayed inside the button.
+ * @param onClick The action to perform when the button is clicked.
+ * @param enabled Whether the button is enabled or disabled. Defaults to true.
+ * @param modifier Jetpack Compose modifier for layout or behavior customization.
+ * @param fullWidth If true, the button will occupy the full available width. Defaults to true.
+ * @param containerColor Background color of the button when enabled.
+ * @param disabledContainerColor Background color of the button when disabled.
+ * @param contentColor Color of the button’s content (text) when enabled.
+ * @param disabledContentColor Color of the button’s content (text) when disabled.
+ */
 @Composable
 fun AppButton(
     text: String,

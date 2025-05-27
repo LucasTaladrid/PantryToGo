@@ -1,4 +1,4 @@
-package com.lucasdev.apprecetas.ingredients.ui
+package com.lucasdev.apprecetas.ingredients.ui.myingredients
 
 
 import androidx.lifecycle.ViewModel

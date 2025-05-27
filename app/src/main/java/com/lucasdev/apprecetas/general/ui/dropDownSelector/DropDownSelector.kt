@@ -17,6 +17,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 
+/**
+ * A generic dropdown selector composable that displays a list of options and allows the user
+ * to select one from the dropdown menu.
+ *
+ * @param T The type of the items in the dropdown list.
+ * @param label The label to show on the text field.
+ * @param options The list of options of type [T] to display in the dropdown.
+ * @param selected The currently selected item.
+ * @param onSelected Callback invoked when an option is selected, passing the selected item.
+ * @param labelMapper A function that maps an item of type [T] to a displayable [String] label.
+ */
 @Composable
 fun <T> DropdownSelector(
     label: String,

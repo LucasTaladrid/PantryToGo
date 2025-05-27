@@ -1,31 +1,45 @@
 package com.lucasdev.apprecetas.users.data.datasource
 
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
-import com.google.firebase.firestore.firestore
+import android.util.Log
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
-class UserFirebaseDataSource  @Inject constructor() : UserDataSource {
+class UserFirebaseDataSource @Inject constructor(
+    private val auth: FirebaseAuth,
+    private val firestore: FirebaseFirestore
+) {
 
-    private val firestore = Firebase.firestore
-    private val auth = Firebase.auth
+    suspend fun loginUser(email: String, password: String): Result<Unit> {
+        return try {
+            auth.signInWithEmailAndPassword(email, password).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
-    override suspend fun isAdmin(): Boolean = suspendCoroutine { cont ->
-        val uid = auth.currentUser?.uid
-        if (uid == null) {
-            cont.resume(false)
-            return@suspendCoroutine
+
+
+
+    suspend fun isAdmin(): Boolean {
+        val uid = auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
+        val document = firestore.collection("users").document(uid).get().await()
+        return document.getBoolean("isAdmin") ?: false
+    }
+
+
+    fun logout() {
+        auth.signOut()
+        try {
+            firestore.clearPersistence()
+        } catch (e: Exception) {
+            Log.e("UserFirebaseDataSource", "Error al limpiar la persistencia de Firestore", e)
         }
 
-        firestore.collection("users").document(uid).get()
-            .addOnSuccessListener { document ->
-                val isAdmin = document.getBoolean("admin") ?: false
-                cont.resume(isAdmin)
-            }
-            .addOnFailureListener {
-                cont.resume(false)
-            }
     }
+
+    fun currentUserId(): String? = auth.currentUser?.uid
 }

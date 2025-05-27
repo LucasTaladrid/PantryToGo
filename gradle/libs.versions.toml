@@ -15,6 +15,11 @@ hilt = "2.48.1"
 navigationRuntimeAndroid = "2.9.0-beta01"
 navigationCompose = "2.8.9"
 hiltNav="1.2.0"
+mockitoCore = "5.2.0"
+mockitoKotlin = "5.2.1"
+coroutinesTest = "1.7.3"
+
+
 
 
 [libraries]
@@ -44,6 +49,10 @@ firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashly
 androidx-navigation-runtime-android = { group = "androidx.navigation", name = "navigation-runtime-android", version.ref = "navigationRuntimeAndroid" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNav" }
+mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockitoCore" }
+mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
+
 
 
 
