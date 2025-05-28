@@ -19,6 +19,10 @@ import kotlin.coroutines.suspendCoroutine
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
+/**
+ * Data source for interacting with Firebase Firestore to manage recipes, favorites, pending recipes,
+ * and pantry synchronization.
+ */
 class RecipeFirebaseDataSource @Inject constructor() {
     private val db = Firebase.firestore
     private val auth = Firebase.auth
@@ -36,12 +40,21 @@ class RecipeFirebaseDataSource @Inject constructor() {
 
     private fun commonRecipesRef() = db.collection("recipes")
 
+    /**
+     * Checks whether the current user is an admin.
+     * @return true if the user is an admin, false otherwise.
+     */
     suspend fun isAdmin(): Boolean {
         val snapshot = db.collection("users").document(uid).get().await()
         return snapshot.getBoolean("admin") ?: false
 
     }
 
+    /**
+     * Adds a new recipe to the appropriate Firestore collection depending on admin status.
+     * @param recipe The recipe to add.
+     * @return The added recipe with an ID and creation timestamp, or null if an error occurred.
+     */
     suspend fun addRecipe(recipe: RecipeModel): RecipeModel? {
         val admin = isAdmin()
         val ref = if (admin) commonRecipesRef() else userRecipesRef()
@@ -59,6 +72,10 @@ class RecipeFirebaseDataSource @Inject constructor() {
 
     }
 
+    /**
+     * Retrieves a list of public (common) recipes.
+     * @return List of [RecipeModel] from the public collection.
+     */
     suspend fun getCommonRecipes(): List<RecipeModel> = suspendCoroutine { cont ->
         commonRecipesRef().get()
             .addOnSuccessListener { snapshot ->
@@ -70,8 +87,12 @@ class RecipeFirebaseDataSource @Inject constructor() {
             }
     }
 
+    /**
+     * Retrieves the user's recipes or all public ones if the user is an admin.
+     * @return List of [RecipeModel].
+     */
     suspend fun getUserRecipes(): List<RecipeModel> {
-        val admin = isAdmin() // ✔️ ahora sí, porque ya estamos en un contexto suspendido
+        val admin = isAdmin()
         val ref = if (admin) commonRecipesRef() else userRecipesRef()
         return suspendCoroutine { cont ->
             ref.get()
@@ -85,6 +106,10 @@ class RecipeFirebaseDataSource @Inject constructor() {
         }
     }
 
+    /**
+     * Adds a recipe to the user's favorites collection.
+     * @param recipe The recipe to favorite.
+     */
     suspend fun addToFavorites(recipe: RecipeModel) {
         try {
             favoritesRef()
@@ -103,6 +128,11 @@ class RecipeFirebaseDataSource @Inject constructor() {
         }
     }
 
+    /**
+     * Adds a recipe to the pending list and updates the shopping list if needed.
+     * @param recipe The recipe to mark as pending.
+     * @param shoppingListId The shopping list ID to update with missing ingredients.
+     */
     suspend fun addToPending(recipe: RecipeModel,shoppingListId: String) {
         try {
             verifyPantryAndUpdateShoppingList(recipe, shoppingListId)
@@ -122,6 +152,10 @@ class RecipeFirebaseDataSource @Inject constructor() {
         }
     }
 
+    /**
+     * Removes a recipe from the favorites list.
+     * @param recipe The recipe to remove.
+     */
     suspend fun removeFromFavorites(recipe: RecipeModel) {
         try {
             favoritesRef()
@@ -133,12 +167,15 @@ class RecipeFirebaseDataSource @Inject constructor() {
         }
     }
 
+    /**
+     * Removes a recipe from the pending list and subtracts its ingredients from the shopping list.
+     * @param recipe The recipe to remove.
+     * @param shoppingListId The shopping list ID to update.
+     */
     suspend fun removeFromPending(recipe: RecipeModel, shoppingListId: String) {
+
         try {
-
             pendingRef().document(recipe.id).delete().await()
-
-
             val shoppingIngredients = recipe.ingredients.map {
                 ShoppingIngredientModel(
                     id = it.ingredientId,
@@ -150,7 +187,6 @@ class RecipeFirebaseDataSource @Inject constructor() {
                     checked = false
                 )
             }
-
             shoppingDataSource.subtractIngredientsFromShoppingList(shoppingListId, shoppingIngredients)
 
         } catch (e: Exception) {
@@ -158,6 +194,10 @@ class RecipeFirebaseDataSource @Inject constructor() {
         }
     }
 
+    /**
+     * Retrieves the user's favorite recipes.
+     * @return List of [RecipeModel].
+     */
     suspend fun getFavoriteRecipes(): List<RecipeModel> = try {
         db.collection("users")
             .document(uid)
@@ -171,6 +211,10 @@ class RecipeFirebaseDataSource @Inject constructor() {
         emptyList()
     }
 
+    /**
+     * Retrieves the user's pending recipes.
+     * @return List of [RecipeModel].
+     */
     suspend fun getPendingRecipes(): List<RecipeModel> = try {
         db.collection("users")
             .document(uid)
@@ -185,7 +229,13 @@ class RecipeFirebaseDataSource @Inject constructor() {
     }
 
     /*
-      This method should be modified in the future to accommodate a larger number of users (Cloud Function)
+      todo This method should be modified in the future to accommodate a larger number of users (Cloud Function)
+     */
+    /**
+     * Deletes a recipe from all relevant collections.
+     * If admin, deletes from all users' favorites and pending lists.
+     * @param recipeId ID of the recipe to delete.
+     * @return true if deleted successfully, false otherwise.
      */
     suspend fun deleteRecipe(recipeId: String): Boolean {
         return try {
@@ -218,12 +268,17 @@ class RecipeFirebaseDataSource @Inject constructor() {
 
     }
 
+    /**
+     * Updates a recipe and propagates changes to all relevant collections.
+     * @param recipe The updated recipe.
+     * @return true if updated successfully, false otherwise.
+     */
     suspend fun updateRecipe(recipe: RecipeModel): Boolean {
+
         return try {
             val admin = isAdmin()
             val mainRef = if (admin) commonRecipesRef() else userRecipesRef()
 
-            // 1. Actualizar receta principal
             mainRef.document(recipe.id).set(recipe).await()
 
             if (admin) {
@@ -261,6 +316,11 @@ class RecipeFirebaseDataSource @Inject constructor() {
         }
     }
 
+    /**
+     * Verifies which ingredients are missing from the pantry and adds them to the shopping list.
+     * @param recipe The recipe to check.
+     * @param listId The ID of the shopping list to update.
+     */
     private suspend fun verifyPantryAndUpdateShoppingList(recipe: RecipeModel, listId: String) {
         val pantryRef = pantryRef()
 
@@ -291,10 +351,13 @@ class RecipeFirebaseDataSource @Inject constructor() {
         }
     }
 
-
+    /**
+     * Marks a recipe as cooked: removes it from pending list and subtracts used ingredients from pantry.
+     * @param recipe The recipe that was cooked.
+     */
     suspend fun markRecipeAsCooked(recipe: RecipeModel) {
         try {
-            // 1. Eliminar de pendientes
+
             pendingRef().document(recipe.id).delete().await()
             Log.d("markRecipeAsCooked", "Receta eliminada de pendientes: ${recipe.id}")
 
@@ -307,7 +370,6 @@ class RecipeFirebaseDataSource @Inject constructor() {
                 return BigDecimal(value).setScale(decimals, RoundingMode.HALF_UP).toDouble()
             }
 
-            // 2. Obtener snapshot actual de la despensa
             val pantrySnapshot = pantryRef().get().await()
             val pantryItems = pantrySnapshot.documents.mapNotNull { it.toObject(PantryIngredientModel::class.java) }
 
@@ -340,7 +402,5 @@ class RecipeFirebaseDataSource @Inject constructor() {
             Log.e("markRecipeAsCooked", "Error al marcar receta como cocinada", e)
         }
     }
-
-
 
 }

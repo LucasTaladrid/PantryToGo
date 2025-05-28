@@ -52,8 +52,7 @@ fun LoginScreen(
     Box(
         modifier
             .fillMaxSize()
-            .padding(8.dp)
-        //.background()
+        .background(Color.Yellow)
     ) {
         Header(Modifier.align(Alignment.TopEnd))
         Body(Modifier.align(Alignment.Center), loginScreenViewModel, onLoginSuccess)
@@ -264,8 +263,8 @@ fun Email(email: String, onTextChange: (String) -> Unit) {
 @Composable
 fun ImageLogo(modifier: Modifier) {
     Image(
-        painter = painterResource(R.drawable.ic_launcher_foreground),
+        painter = painterResource(R.drawable.logo_app),
         contentDescription = "Logo",
-        modifier = modifier
+        modifier = modifier.size(240.dp)
     )
 }

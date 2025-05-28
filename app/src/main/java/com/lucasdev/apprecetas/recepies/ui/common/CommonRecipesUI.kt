@@ -79,7 +79,6 @@ fun RecipeItem(
                 modifier = Modifier.weight(1f)
             )
 
-            // Botón de favorito ❤️
             IconButton(onClick = { onToggleFavorite() }) {
                 Icon(
                     imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
@@ -88,7 +87,6 @@ fun RecipeItem(
                 )
             }
 
-            // Botón de pendiente 📌
             IconButton(onClick = { onTogglePending() }) {
                 Icon(
                     imageVector = if (isPending) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
@@ -157,7 +155,6 @@ fun RecipeItemPress(
                 modifier = Modifier.weight(1f)
             )
 
-
             IconButton(onClick = { onToggleFavorite() }) {
                 Icon(
                     imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
@@ -165,7 +162,6 @@ fun RecipeItemPress(
                     tint = if (isFavorite) Color(0xFFE91E63) else LocalContentColor.current
                 )
             }
-
 
             IconButton(onClick = { onTogglePending() }) {
                 Icon(
@@ -219,7 +215,6 @@ fun RecipeCreateDialog(
     var ingredientToEdit by remember { mutableStateOf<PantryIngredientModel?>(null) }
     var newQuantity by remember { mutableStateOf("") }
 
-    // Añadir ingrediente
     if (showIngredientDialog) {
         AddIngredientDialog(
             categories = categories,
@@ -242,7 +237,6 @@ fun RecipeCreateDialog(
         )
     }
 
-    // Editar cantidad de ingrediente
     if (ingredientToEdit != null) {
         AlertDialog(
             onDismissRequest = { ingredientToEdit = null },

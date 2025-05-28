@@ -45,10 +45,8 @@ fun MyRecipesScreen(myRecipesViewModel: MyRecipesScreenViewModel, back: () -> Un
     val showDeleteConfirmation by myRecipesViewModel.showDeleteConfirmation.collectAsState()
     val selectedRecipe by myRecipesViewModel.selectedRecipe.collectAsState()
 
-
     var expandedId by remember { mutableStateOf<String?>(null) }
     var showCreateRecipeDialog by remember { mutableStateOf(false) }
-
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {

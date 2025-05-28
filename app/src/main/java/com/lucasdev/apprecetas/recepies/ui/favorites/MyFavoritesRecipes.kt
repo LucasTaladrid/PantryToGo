@@ -35,10 +35,7 @@ fun MyFavoritesRecipesScreen(myFavoritesRecipesViewModel: MyFavoritesRecipesView
     val favorites by myFavoritesRecipesViewModel.favoriteRecipes.collectAsState()
     val pending by myFavoritesRecipesViewModel.pendingRecipes.collectAsState()
 
-
-
     var expandedId by remember { mutableStateOf<String?>(null) }
-
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {

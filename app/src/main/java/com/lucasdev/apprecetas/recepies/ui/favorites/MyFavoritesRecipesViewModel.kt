@@ -35,6 +35,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel responsible for managing the state and business logic
+ * for the user's favorite and pending recipes.
+ *
+ * It handles loading, toggling, and syncing data between the UI and domain layer.
+ */
 @HiltViewModel
 class MyFavoritesRecipesViewModel @Inject constructor(
     private val addToFavoritesUseCase: AddRecipeToFavoritesUseCase,
@@ -45,7 +51,6 @@ class MyFavoritesRecipesViewModel @Inject constructor(
     private val getPendingRecipesUseCase: GetPendingRecipesUseCase,
     private val getUserRecipeUseCase: GetUserRecipeUseCase,
     private val getShoppingListsUseCase: GetShoppingListsUseCase,
-    private val markRecipeAsCookedUseCase: MarkRecipeAsCookedUseCase
 ) : ViewModel() {
 
     private val _categories = MutableStateFlow<List<CategoryModel>>(emptyList())
@@ -68,12 +73,18 @@ class MyFavoritesRecipesViewModel @Inject constructor(
     val isLoading: StateFlow<Boolean> = _isLoading
 
 
+    /**
+     * Initializes the ViewModel by loading the user's recipes.
+     */
     init {
         viewModelScope.launch {
             loadRecipes()
         }
     }
 
+    /**
+     * Refreshes all recipe-related data: user, favorite, and pending recipes.
+     */
     fun refresh() {
         viewModelScope.launch {
 
@@ -84,6 +95,9 @@ class MyFavoritesRecipesViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Loads recipes created by the user and updates the state.
+     */
     private fun loadRecipes() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -101,24 +115,47 @@ class MyFavoritesRecipesViewModel @Inject constructor(
     }
 
 
+    /**
+     * Loads the user's favorite recipes and updates the state.
+     */
     private suspend fun loadFavoriteRecipes() {
         _favoriteRecipes.value = getFavoriteRecipesUseCase()
         Log.d("ViewModel", "Favoritos cargados: ${favoriteRecipes.value}")
     }
 
+    /**
+     * Loads the user's pending recipes and updates the state.
+     */
     private suspend fun loadPendingRecipes() {
         _pendingRecipes.value = getPendingRecipesUseCase()
         Log.d("ViewModel", "Pendientes cargados: ${pendingRecipes.value}")
     }
 
+    /**
+     * Checks if a given recipe is marked as favorite.
+     *
+     * @param recipe The recipe to check.
+     * @return True if it's a favorite, false otherwise.
+     */
     private fun isFavorite(recipe: RecipeModel): Boolean {
         return _favoriteRecipes.value.any { it.id == recipe.id }
     }
 
+    /**
+     * Checks if a given recipe is marked as pending.
+     *
+     * @param recipe The recipe to check.
+     * @return True if it's pending, false otherwise.
+     */
     private fun isPending(recipe: RecipeModel): Boolean {
         return _pendingRecipes.value.any { it.id == recipe.id }
     }
 
+    /**
+     * Adds or removes a recipe from favorites based on its current state.
+     *
+     * @param recipe The recipe to toggle.
+     */
     fun toggleFavorite(recipe: RecipeModel) {
         viewModelScope.launch {
             if (isFavorite(recipe)) {
@@ -130,6 +167,12 @@ class MyFavoritesRecipesViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Adds or removes a recipe from the pending list based on its current state
+     * and the active shopping list.
+     *
+     * @param recipe The recipe to toggle.
+     */
     fun togglePending(recipe: RecipeModel) {
         viewModelScope.launch {
             val shoppingLists = getShoppingListsUseCase()
