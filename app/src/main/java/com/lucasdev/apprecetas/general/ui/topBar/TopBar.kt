@@ -15,6 +15,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
+import com.lucasdev.apprecetas.R
 
 //todo Cambiar colors, añadir dialogo de ayuda para mostar el tutorial
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,8 +31,8 @@ fun TopBar(
         modifier = Modifier.statusBarsPadding(),
         title = { Text("Hola $userName") },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color.Red,
-            titleContentColor = Color.White
+            containerColor = colorResource(id = R.color.dark_orange),
+            titleContentColor = Color.Black
         ),
         navigationIcon = {
             IconButton(onClick = { onClickDrawer() }) {

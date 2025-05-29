@@ -1,7 +1,10 @@
 package com.lucasdev.apprecetas.general.ui.scaffold
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DrawerValue
@@ -24,9 +27,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.lucasdev.apprecetas.R
 import com.lucasdev.apprecetas.general.ui.bottomBar.BottomBarNavigation
 import com.lucasdev.apprecetas.general.ui.appButtons.FAB
 import com.lucasdev.apprecetas.general.ui.topBar.TopBar
@@ -99,7 +104,15 @@ fun AppScaffold(
             floatingActionButtonPosition = FabPosition.End,
 
             ) { innerPadding ->
-            content(innerPadding)
+            Box(
+                modifier = Modifier
+                    .background(colorResource(id = R.color.very_light_orange))
+
+            ) {
+                content(innerPadding)
+            }
+
+
 
         }
     }

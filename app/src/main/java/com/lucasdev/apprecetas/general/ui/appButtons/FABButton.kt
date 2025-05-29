@@ -7,6 +7,8 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
+import com.lucasdev.apprecetas.R
 
 //todo, cambiar el color, añadir funcionalidad, en las recetas, añade recetas, en la de ingredientes añade ingredientes.
 /**
@@ -18,7 +20,7 @@ import androidx.compose.ui.graphics.Color
 fun FAB(onFabClick: () -> Unit) {
     FloatingActionButton(
         onClick = {onFabClick()},
-        containerColor = Color.Yellow,
+        containerColor = colorResource(id= R.color.orange),
         contentColor = Color.Black,
         shape = CircleShape
     ) {

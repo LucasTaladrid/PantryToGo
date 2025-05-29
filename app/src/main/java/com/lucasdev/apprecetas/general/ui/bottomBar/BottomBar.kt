@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -38,7 +39,7 @@ fun BottomBarNavigation(navController: NavHostController) {
         else -> -1
     }
 
-    NavigationBar(containerColor = Color.Red) {
+    NavigationBar(containerColor = colorResource(id=R.color.dark_orange)) {
         NavigationBarItem(
             selected = selectedIndex == 0,
             onClick = {
@@ -53,9 +54,8 @@ fun BottomBarNavigation(navController: NavHostController) {
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color.Black,
                 indicatorColor = orange,
-                unselectedIconColor = Color.Gray,
-                selectedTextColor = Color.White,
-                unselectedTextColor = Color.Gray
+                selectedTextColor = Color.Black,
+                unselectedTextColor = Color.White
             ),
             icon = {
                 Icon(
@@ -80,9 +80,8 @@ fun BottomBarNavigation(navController: NavHostController) {
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color.Black,
                 indicatorColor = orange,
-                unselectedIconColor = Color.Gray,
-                selectedTextColor = Color.White,
-                unselectedTextColor = Color.Gray
+                selectedTextColor = Color.Black,
+                unselectedTextColor = Color.White
             ),
             icon = {
                 Icon(
@@ -107,9 +106,8 @@ fun BottomBarNavigation(navController: NavHostController) {
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = Color.Black,
                 indicatorColor = orange,
-                unselectedIconColor = Color.Gray,
-                selectedTextColor = Color.White,
-                unselectedTextColor = Color.Gray
+                selectedTextColor = Color.Black,
+                unselectedTextColor = Color.White
             ),
             icon = {
                 Icon(

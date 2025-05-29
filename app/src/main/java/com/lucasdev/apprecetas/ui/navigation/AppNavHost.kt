@@ -16,7 +16,6 @@ import com.lucasdev.apprecetas.ingredients.ui.myingredients.MyIngredientsScreen
 import com.lucasdev.apprecetas.ingredients.ui.pantry.PantryIngredientsViewModel
 import com.lucasdev.apprecetas.recepies.ui.favorites.MyFavoritesRecipesScreen
 import com.lucasdev.apprecetas.recepies.ui.myrecipes.MyRecipesScreen
-import com.lucasdev.apprecetas.recepies.ui.pending.MyPendingRecipesViewModel
 import com.lucasdev.apprecetas.recepies.ui.pending.MyPendingsRecipesScreen
 import com.lucasdev.apprecetas.recepies.ui.recipesmain.RecipeViewModel
 import com.lucasdev.apprecetas.recepies.ui.recipesmain.RecipesScreen
