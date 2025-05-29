@@ -1,5 +1,6 @@
 package com.lucasdev.apprecetas.recepies.ui.recipesmain
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -10,6 +11,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,15 +20,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
 import com.lucasdev.apprecetas.general.ui.scaffold.AppScaffold
+import com.lucasdev.apprecetas.general.ui.textApp.helpText.RecipesMainHelp
 import com.lucasdev.apprecetas.recepies.domain.model.RecipeModel
 import com.lucasdev.apprecetas.recepies.ui.common.RecipeCreateDialog
 import com.lucasdev.apprecetas.recepies.ui.common.RecipeItem
-
 
 @Composable
 fun RecipesScreen(
@@ -42,8 +45,8 @@ fun RecipesScreen(
     val isSaving by recipeViewModel.isSaving.collectAsState()
     val favorites by recipeViewModel.favoriteRecipes.collectAsState()
     val pending by recipeViewModel.pendingRecipes.collectAsState()
+    val context = LocalContext.current
 
-    // Estado UI
     var expandedId by remember { mutableStateOf<String?>(null) }
     var showCreateRecipeDialog by remember { mutableStateOf(false) }
 
@@ -61,11 +64,19 @@ fun RecipesScreen(
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
+    LaunchedEffect(recipeViewModel.snackbarMessage.collectAsState().value) {
+        val message = recipeViewModel.snackbarMessage.value
+        if (message.isNotEmpty()) {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            recipeViewModel.clearSnackbarMessage()
+        }
+    }
 
     AppScaffold(
         userName = userName,
         navController = navController,
         onFabClick = { showCreateRecipeDialog = true },
+        helpText = RecipesMainHelp.recipesMainHelp,
         content = { padding ->
 
             Box(

@@ -1,4 +1,4 @@
-package com.lucasdev.apprecetas.recepies.data.repository
+package com.lucasdev.apprecetas.recepies.domain.repository.impl
 
 import com.lucasdev.apprecetas.recepies.data.datasource.RecipeFirebaseDataSource
 import com.lucasdev.apprecetas.recepies.domain.model.RecipeModel

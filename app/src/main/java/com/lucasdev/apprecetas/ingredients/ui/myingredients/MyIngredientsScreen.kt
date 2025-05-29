@@ -1,5 +1,6 @@
 package com.lucasdev.apprecetas.ingredients.ui.myingredients
 
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -42,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import com.lucasdev.apprecetas.general.ui.appButtons.AppButton
 import com.lucasdev.apprecetas.general.ui.dropDownSelector.DropdownSelector
 import com.lucasdev.apprecetas.general.ui.scaffold.AppScaffoldWithoutBottomBar
+import com.lucasdev.apprecetas.general.ui.textApp.helpText.MyIngredientsHelp
 import com.lucasdev.apprecetas.ingredients.domain.model.CategoryModel
 import com.lucasdev.apprecetas.ingredients.domain.model.IngredientModel
 import com.lucasdev.apprecetas.ingredients.domain.model.UnitTypeModel
@@ -63,27 +66,27 @@ fun MyIngredientsScreen(myIngredientsViewModel: MyIngredientsViewModel, back: ()
     val selectedIngredient by myIngredientsViewModel.selectedIngredient.collectAsState()
     val isAdmin by myIngredientsViewModel.isAdmin.collectAsState()
     val duplicateIngredient by myIngredientsViewModel.duplicateIngredient.collectAsState()
+    val context = LocalContext.current
 
     LaunchedEffect(isAdmin) {
         myIngredientsViewModel.loadIngredientsForDisplay()
     }
+    LaunchedEffect(myIngredientsViewModel.snackbarMessage.collectAsState().value) {
+        val message = myIngredientsViewModel.snackbarMessage.value
+        if (message.isNotEmpty()) {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            myIngredientsViewModel.clearSnackbarMessage()
+        }
+    }
     AppScaffoldWithoutBottomBar(
         title = "Mis ingredientes",
         onBackClick = back,
+        helpText = MyIngredientsHelp.myIngredientsHelp,
         content = { innerPadding ->
 
             if (ingredientSections.isEmpty() || ingredientSections.all { it.ingredients.isEmpty() }) {
                 Text(
-                    text = buildAnnotatedString {
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp)) {
-                            append("¡Desde aquí puedes gestionar tus ingredientes registrados y personalizar tu experiencia con la aplicación!\n\n")
-                        }
-                        withStyle(style = SpanStyle(fontSize = 16.sp)) {
-                            append("Usa el botón ➕ para registrar un nuevo ingrediente. Selecciona la categoría y la unidad de medida.\n")
-                            append("Una vez el ingrediente esté registrado, lo podrás añadir a tu despensa, lista de la compra y recetas.\n\n")
-                            append("Si quieres modificar un ingrediente o verlo en más detalle mantén pulsado sobre él.\n")
-                        }
-                    },
+                    text = MyIngredientsHelp.myIngredientsHelp,
                     modifier = Modifier
                         .padding(16.dp)
                         .padding(innerPadding)

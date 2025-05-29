@@ -1,7 +1,7 @@
 package com.lucasdev.apprecetas.shopping.domain.di
 
 import com.lucasdev.apprecetas.shopping.data.datasource.ShoppingListFirebaseDataSource
-import com.lucasdev.apprecetas.shopping.data.repository.ShoppingListRepositoryImpl
+import com.lucasdev.apprecetas.shopping.domain.repository.impl.ShoppingListRepositoryImpl
 import com.lucasdev.apprecetas.shopping.domain.repository.ShoppingListRepository
 import com.lucasdev.apprecetas.shopping.domain.usecase.AddShoppingListUseCase
 import com.lucasdev.apprecetas.shopping.domain.usecase.GetShoppingListsUseCase

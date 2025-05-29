@@ -129,6 +129,10 @@ class MyRecipesScreenViewModel @Inject constructor(
     /** Temporarily holds the recipe name during creation or editing */
     private var recipeName by mutableStateOf("")
 
+    /** Holds any error message to show in UI */
+    private val _snackbarMessage =MutableStateFlow<String>("")
+    val snackbarMessage :StateFlow<String> = _snackbarMessage
+
     init {
         viewModelScope.launch {
             loadIngredients()
@@ -243,8 +247,10 @@ class MyRecipesScreenViewModel @Inject constructor(
         viewModelScope.launch {
             if (isFavorite(recipe)) {
                 removeFromFavoritesUseCase(recipe)
+                _snackbarMessage.emit("Receta eliminada de favoritos")
             } else {
                 addToFavoritesUseCase(recipe)
+                _snackbarMessage.emit("Receta añadida a favoritos")
             }
             loadFavoriteRecipes()
         }
@@ -259,9 +265,11 @@ class MyRecipesScreenViewModel @Inject constructor(
             val activeShoppingList = shoppingLists.firstOrNull()
             if (isPending(recipe) && activeShoppingList!=null) {
                 removeFromPendingUseCase(recipe,activeShoppingList.id)
+                _snackbarMessage.emit("Receta eliminada de pendientes")
             } else {
                 if(activeShoppingList!=null)
                     addToPendingUseCase(recipe,activeShoppingList.id)
+                _snackbarMessage.emit("Receta añadida a pendientes")
             }
             loadPendingRecipes()
         }
@@ -319,6 +327,7 @@ class MyRecipesScreenViewModel @Inject constructor(
             if (saved != null) {
                 onSuccess()
                 loadRecipes()
+                _snackbarMessage.emit("Receta creada")
             } else {
                 _errorMessage.value = "Error al guardar la receta"
             }
@@ -363,6 +372,7 @@ class MyRecipesScreenViewModel @Inject constructor(
                 val success = deleteRecipeUseCase(recipe.id)
                 if (success) {
                     clearDialogs()
+                    _snackbarMessage.emit("Receta eliminada")
                 } else {
                     _errorMessage.value = "Error al eliminar la receta"
                 }
@@ -409,10 +419,18 @@ class MyRecipesScreenViewModel @Inject constructor(
                 onSuccess()
                 clearDialogs()
                 loadRecipes()
+                _snackbarMessage.emit("Receta actualizada")
             } else {
                 _errorMessage.value = "Error al actualizar la receta"
             }
         }
+    }
+
+    /**
+     * Clears the snackbar message.
+     */
+    fun clearSnackbarMessage() {
+        _snackbarMessage.value = ""
     }
 
 }

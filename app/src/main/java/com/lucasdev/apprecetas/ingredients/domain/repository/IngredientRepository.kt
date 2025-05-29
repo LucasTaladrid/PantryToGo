@@ -16,6 +16,13 @@ interface IngredientRepository {
     suspend fun getIngredients(): List<IngredientModel>
 
     /**
+     * Retrieves all common ingredients.
+     * @return A list of [IngredientModel] representing all common ingredients.
+     */
+    suspend fun getCommonIngredients(): List<IngredientModel>
+
+
+    /**
      * Adds a new ingredient.
      *
      * @param ingredient The [IngredientModel] to add.

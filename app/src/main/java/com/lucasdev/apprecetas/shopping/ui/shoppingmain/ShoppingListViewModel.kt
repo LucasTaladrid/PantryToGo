@@ -70,6 +70,10 @@ class ShoppingListViewModel @Inject constructor(
     private val _shoppingItemSections = MutableStateFlow<List<ShoppingItemSection>>(emptyList())
     val shoppingItemSections: StateFlow<List<ShoppingItemSection>> = _shoppingItemSections
 
+    private val _snackbarMessage =MutableStateFlow<String>("")
+    val snackbarMessage :StateFlow<String> = _snackbarMessage
+
+
 
     init {
         loadLists()
@@ -167,11 +171,11 @@ class ShoppingListViewModel @Inject constructor(
                                     items = itemsInCategory.sortedBy { it.name.lowercase() })
                             }.sortedBy { it.category.lowercase() }
 
-                    _activeListItems.value = items // por si lo necesitas sin agrupar
+                    _activeListItems.value = items
                     _shoppingItemSections.value = grouped
                 }
             } catch (e: Exception) {
-                _errorMessage.value = "Error al cargar los ingredientes: ${e.message}"
+                _snackbarMessage.emit("Error al cargar los ingredientes: ${e.message}")
             } finally {
                 _isLoading.value = false
             }
@@ -202,11 +206,9 @@ class ShoppingListViewModel @Inject constructor(
         viewModelScope.launch {
             var activeList = _shoppingLists.value.firstOrNull()
 
-            // Si no hay lista, la creamos y esperamos hasta que esté disponible
             if (activeList == null || activeList.id.isEmpty()) {
                 ensureActiveListExists()
 
-                // Esperar a que se propague la lista (máximo 10 intentos con 100ms de retraso)
                 repeat(10) {
                     activeList = _shoppingLists.value.firstOrNull()
                     if (activeList != null && activeList!!.id.isNotEmpty()) return@repeat
@@ -215,7 +217,7 @@ class ShoppingListViewModel @Inject constructor(
             }
 
             if (activeList == null || activeList!!.id.isEmpty()) {
-                _errorMessage.value = "No se pudo obtener una lista activa"
+                _snackbarMessage.emit("No se pudo obtener una lista activa")
                 return@launch
             }
 
@@ -230,14 +232,13 @@ class ShoppingListViewModel @Inject constructor(
             try {
                 val success = addIngredientToShoppingList(activeList!!.id, item)
                 if (!success) {
-                    _errorMessage.value = "No se pudo añadir el ingrediente"
+                    _snackbarMessage.emit( "No se pudo añadir el ingrediente")
                 } else {
-                    // Opcional: recargar lista si quieres que se refleje al instante
                     loadLists()
                     loadActiveListItems()
                 }
             } catch (e: Exception) {
-                _errorMessage.value = "Error al añadir el ingrediente: ${e.message}"
+                _snackbarMessage.emit("Error al añadir el ingrediente: ${e.message}")
             }
         }
     }
@@ -247,13 +248,11 @@ class ShoppingListViewModel @Inject constructor(
             try {
                 val success = updateIngredientCheckedStatus(listId, itemId, isChecked)
                 if (success) {
-                    // Actualiza lista plana
                     val updatedItems = _activeListItems.value.map {
                         if (it.id == itemId) it.copy(checked = isChecked) else it
                     }
                     _activeListItems.value = updatedItems
 
-                    // Vuelve a agrupar por categoría
                     val grouped = updatedItems.groupBy { it.category.name }
                         .map { (category, itemsInCategory) ->
                             ShoppingItemSection(category = category,
@@ -262,13 +261,17 @@ class ShoppingListViewModel @Inject constructor(
 
                     _shoppingItemSections.value = grouped
                 } else {
-                    _errorMessage.value = "No se pudo actualizar el ítem"
+                    _snackbarMessage.emit("No se pudo actualizar el ítem")
                 }
             } catch (e: Exception) {
                 _errorMessage.value = "Error: ${e.message}"
             }
         }
     }
+    fun clearSnackbarMessage() {
+        _snackbarMessage.value = ""
+    }
+
 
     fun moveCheckedItemsToPantry(pantryIngredientsViewModel: PantryIngredientsViewModel) {
         viewModelScope.launch {
@@ -281,13 +284,14 @@ class ShoppingListViewModel @Inject constructor(
             val checkedItems = _activeListItems.value.filter { it.checked }
 
             if (checkedItems.isEmpty()) {
-                _errorMessage.value = "No hay elementos marcados"
+                _snackbarMessage.emit("No hay elementos marcados")
+
                 return@launch
             }
             val historyEntry = ShoppingHistoryModel(
                 title = "Transferencia del ${activeList.date.toDate().toLocaleString()}",
                 date = Timestamp.now(),
-                items = checkedItems // todos los marcados
+                items = checkedItems
             )
 
             try {
@@ -314,6 +318,9 @@ class ShoppingListViewModel @Inject constructor(
             }
 
             loadActiveListItems()
+            _snackbarMessage.emit("Compra finalizada. Ingredientes movidos a la despensa")
+
+            _errorMessage.value = null
         }
     }
 

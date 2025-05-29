@@ -1,5 +1,6 @@
 package com.lucasdev.apprecetas.shopping.ui.myshoppinghistory
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,8 +21,10 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -29,29 +32,30 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lucasdev.apprecetas.general.ui.textApp.helpText.MyShoppingHistoryHelp
 
 @Composable
 fun MyShoppingHistoryScreen(myShoppingHistoryViewModel: MyShoppingHistoryViewModel, back: () -> Unit) {
     val history by myShoppingHistoryViewModel.history.collectAsState()
     val expandedItems by myShoppingHistoryViewModel.expandedItems.collectAsState()
     val historyItems by myShoppingHistoryViewModel.historyItems.collectAsState()
+    val context = LocalContext.current
 
+    LaunchedEffect(myShoppingHistoryViewModel.snackbarMessage.collectAsState().value) {
+        val message = myShoppingHistoryViewModel.snackbarMessage.value
+        if (message.isNotEmpty()) {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            myShoppingHistoryViewModel.clearSnackbarMessage()
+        }
+    }
     AppScaffoldWithoutBottomBar(
-        title = "Historial de compras",
+        title = "Últimas compras",
         onBackClick = back,
+        helpText = MyShoppingHistoryHelp.myShoppingHistoryHelp,
         content = { innerPadding ->
             if (history.isEmpty()) {
                 Text(
-                    text = buildAnnotatedString {
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp)) {
-                            append("Estas son tus últimas compras, aquí puedes ver la fecha y qué ingredientes y qué cantidades has ido comprando a lo largo del tiempo.\n\n")
-                        }
-                        withStyle(style = SpanStyle(fontSize = 16.sp)) {
-                            append("Pulsa sobre la fecha para desplegar la lista.\n")
-                            append("Si quieres borrar una lista, pulsa sobre eliminar.\n")
-                            append("Ten en cuenta que solo se guardan tus últimas 5 compras.\n")
-                        }
-                    },
+                    text = MyShoppingHistoryHelp.myShoppingHistoryHelp,
                     modifier = Modifier
                         .padding(16.dp)
                         .padding(innerPadding)

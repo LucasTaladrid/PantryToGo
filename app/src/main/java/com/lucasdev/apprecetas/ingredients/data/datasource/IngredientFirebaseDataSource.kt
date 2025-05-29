@@ -80,7 +80,7 @@ class IngredientFirebaseDataSource @Inject constructor( private val dataSourcePa
      *
      * @return A list of common [IngredientModel].
      */
-    private suspend fun getCommonIngredients(): List<IngredientModel> = suspendCoroutine { cont ->
+     suspend fun getCommonIngredients(): List<IngredientModel> = suspendCoroutine { cont ->
         commonIngredientsRef().get()
             .addOnSuccessListener { snapshot ->
                 val list = snapshot.mapNotNull { it.toObject(IngredientModel::class.java) }

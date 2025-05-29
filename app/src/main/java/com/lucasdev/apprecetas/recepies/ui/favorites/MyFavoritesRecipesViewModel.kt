@@ -72,6 +72,9 @@ class MyFavoritesRecipesViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    /** Holds any error message to show in UI */
+    private val _snackbarMessage = MutableStateFlow<String>("")
+    val snackbarMessage: StateFlow<String> = _snackbarMessage
 
     /**
      * Initializes the ViewModel by loading the user's recipes.
@@ -160,8 +163,10 @@ class MyFavoritesRecipesViewModel @Inject constructor(
         viewModelScope.launch {
             if (isFavorite(recipe)) {
                 removeFromFavoritesUseCase(recipe)
+                _snackbarMessage.emit("Receta eliminada de favoritos")
             } else {
                 addToFavoritesUseCase(recipe)
+                _snackbarMessage.emit("Receta añadida a favoritos")
             }
             loadFavoriteRecipes()
         }
@@ -177,14 +182,25 @@ class MyFavoritesRecipesViewModel @Inject constructor(
         viewModelScope.launch {
             val shoppingLists = getShoppingListsUseCase()
             val activeShoppingList = shoppingLists.firstOrNull()
-            if (isPending(recipe) && activeShoppingList!=null) {
-                removeFromPendingUseCase(recipe,activeShoppingList.id)
+            if (isPending(recipe) && activeShoppingList != null) {
+                removeFromPendingUseCase(recipe, activeShoppingList.id)
+                _snackbarMessage.emit("Receta eliminada de pendientes")
             } else {
-                if(activeShoppingList!=null)
-                    addToPendingUseCase(recipe,activeShoppingList.id)
+                if (activeShoppingList != null){
+                    addToPendingUseCase(recipe, activeShoppingList.id)
+                    _snackbarMessage.emit("Receta añadida a pendientes")
+                }
+
             }
             loadPendingRecipes()
         }
+    }
+
+    /**
+     * Clears the snackbar message.
+     */
+    fun clearSnackbarMessage() {
+        _snackbarMessage.value = ""
     }
 
 }

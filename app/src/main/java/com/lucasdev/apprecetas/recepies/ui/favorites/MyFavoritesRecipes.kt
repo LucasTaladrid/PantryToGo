@@ -1,5 +1,6 @@
 package com.lucasdev.apprecetas.recepies.ui.favorites
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -10,6 +11,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,13 +20,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.lucasdev.apprecetas.general.ui.scaffold.AppScaffoldWithoutBottomBar
+import com.lucasdev.apprecetas.general.ui.textApp.helpText.MyFavoritesRecipesHelp
 import com.lucasdev.apprecetas.recepies.ui.common.RecipeItem
-import com.lucasdev.apprecetas.recepies.ui.common.RecipeItemPress
 
 
 @Composable
@@ -34,6 +37,7 @@ fun MyFavoritesRecipesScreen(myFavoritesRecipesViewModel: MyFavoritesRecipesView
     val errorMessage by myFavoritesRecipesViewModel.errorMessage.collectAsState()
     val favorites by myFavoritesRecipesViewModel.favoriteRecipes.collectAsState()
     val pending by myFavoritesRecipesViewModel.pendingRecipes.collectAsState()
+    val context = LocalContext.current
 
     var expandedId by remember { mutableStateOf<String?>(null) }
 
@@ -49,10 +53,18 @@ fun MyFavoritesRecipesScreen(myFavoritesRecipesViewModel: MyFavoritesRecipesView
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
+    LaunchedEffect(myFavoritesRecipesViewModel.snackbarMessage.collectAsState().value) {
+        val message = myFavoritesRecipesViewModel.snackbarMessage.value
+        if (message.isNotEmpty()) {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            myFavoritesRecipesViewModel.clearSnackbarMessage()
+        }
+    }
 
     AppScaffoldWithoutBottomBar(
         title = "Mis recetas favoritas",
         onBackClick = back,
+        helpText = MyFavoritesRecipesHelp.myFavoritesRecipesHelp,
         content = { innerPadding ->
             Box(
                 Modifier
@@ -75,7 +87,7 @@ fun MyFavoritesRecipesScreen(myFavoritesRecipesViewModel: MyFavoritesRecipesView
                     else -> {
                         if (recipes.isEmpty()) {
                             Text(
-                                text = "¡Todavía no tienes recetas favoritas! Vete a la pantalla de recetas y selecciona las que quieras añadir.",
+                                text = MyFavoritesRecipesHelp.myFavoritesRecipesHelp ,
                                 modifier = Modifier
                                     .padding(16.dp)
                                     .align(Alignment.TopCenter)

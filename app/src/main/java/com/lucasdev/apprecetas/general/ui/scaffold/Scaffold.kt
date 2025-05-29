@@ -3,6 +3,7 @@ package com.lucasdev.apprecetas.general.ui.scaffold
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.ModalDrawerSheet
@@ -13,6 +14,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,6 +24,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.lucasdev.apprecetas.general.ui.bottomBar.BottomBarNavigation
@@ -48,11 +51,20 @@ fun AppScaffold(
     content: @Composable (PaddingValues) -> Unit,
     onFabClick: (() -> Unit)? = null,
     navController: NavHostController,
+    helpText: AnnotatedString? = null,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
 
-    val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val showHelpDialog = remember { mutableStateOf(false) }
+
+    if (showHelpDialog.value && helpText != null) {
+        HelpDialog(
+            helpText = helpText,
+            onDismiss = { showHelpDialog.value = false }
+        )
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -71,11 +83,11 @@ fun AppScaffold(
             topBar = {
                 TopBar(
                     userName = userName,
-                    onClickIcon = {
-                        coroutineScope.launch { snackbarHostState.showSnackbar("Has pulsado $it") }
-                    },
+                    onClickIcon = {/*todo in the future this will contain search */},
+                    onClickHelp = {showHelpDialog.value = true},
                     onClickDrawer = { coroutineScope.launch { drawerState.apply { if (isClosed) open() else close() } } })
             },
+
 
             snackbarHost = { SnackbarHost(snackbarHostState) },
             bottomBar = { BottomBarNavigation(navController = navController) },
@@ -133,4 +145,22 @@ fun MyModalDrawer(
             )
         }
     }
+}
+
+@Composable
+fun HelpDialog(
+    helpText:
+    AnnotatedString?,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Entendido")
+            }
+        },
+        title = { Text("Ayuda") },
+        text = { Text(helpText!!) }
+    )
 }

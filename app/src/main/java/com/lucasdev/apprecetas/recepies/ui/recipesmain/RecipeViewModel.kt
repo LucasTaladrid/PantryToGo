@@ -131,6 +131,10 @@ class RecipeViewModel @Inject constructor(
     /** Current recipe name being edited or created */
     private var recipeName by mutableStateOf("")
 
+    /** Holds any error message to show in UI */
+    private val _snackbarMessage =MutableStateFlow<String>("")
+    val snackbarMessage :StateFlow<String> = _snackbarMessage
+
 
     init {
         viewModelScope.launch {
@@ -264,8 +268,10 @@ class RecipeViewModel @Inject constructor(
         viewModelScope.launch {
             if (isFavorite(recipe)) {
                 removeFromFavoritesUseCase(recipe)
+                _snackbarMessage.emit("Receta quitada de favoritos")
             } else {
                 addToFavoritesUseCase(recipe)
+                _snackbarMessage.emit("Receta añadida a favoritos")
             }
             loadFavoriteRecipes()
         }
@@ -283,9 +289,11 @@ class RecipeViewModel @Inject constructor(
             val activeShoppingList = shoppingLists.firstOrNull()
             if (isPending(recipe) && activeShoppingList!=null) {
                 removeFromPendingUseCase(recipe,activeShoppingList.id)
+                _snackbarMessage.emit("Receta quitada de pendientes")
             } else {
                 if(activeShoppingList!=null)
                     addToPendingUseCase(recipe,activeShoppingList.id)
+                _snackbarMessage.emit("Receta añadida a pendientes")
             }
             loadPendingRecipes()
         }
@@ -385,10 +393,11 @@ class RecipeViewModel @Inject constructor(
             _isSaving.value = false
 
             if (saved != null) {
+                _snackbarMessage.emit("Receta guardada")
                 onSuccess()
                 loadRecipes()
             } else {
-                _errorMessage.value = "Error al guardar la receta"
+                _snackbarMessage.emit( "Error al guardar la receta")
             }
         }
     }
@@ -401,6 +410,13 @@ class RecipeViewModel @Inject constructor(
     fun updateIngredient(updated: PantryIngredientModel) {
         val idx = _recipeIngredients.indexOfFirst { it.ingredientId == updated.ingredientId }
         if (idx >= 0) _recipeIngredients[idx] = updated
+    }
+
+    /**
+     * Clears the snackbar message.
+     */
+    fun clearSnackbarMessage() {
+        _snackbarMessage.value = ""
     }
 
 }

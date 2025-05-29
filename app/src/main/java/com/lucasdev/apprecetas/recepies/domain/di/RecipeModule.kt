@@ -1,7 +1,7 @@
 package com.lucasdev.apprecetas.recepies.domain.di
 
 import com.lucasdev.apprecetas.recepies.data.datasource.RecipeFirebaseDataSource
-import com.lucasdev.apprecetas.recepies.data.repository.RecipeRepositoryImpl
+import com.lucasdev.apprecetas.recepies.domain.repository.impl.RecipeRepositoryImpl
 import com.lucasdev.apprecetas.recepies.domain.repository.RecipeRepository
 import dagger.Binds
 import dagger.Module

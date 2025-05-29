@@ -37,11 +37,15 @@ class MyShoppingHistoryViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
+    /** Holds any error message to show in UI */
+    private val _snackbarMessage =MutableStateFlow<String>("")
+    val snackbarMessage :StateFlow<String> = _snackbarMessage
+
     init {
         loadHistory()
     }
 
-    fun loadHistory() {
+    private fun loadHistory() {
         viewModelScope.launch {
             try {
                 _history.value = getRecentShoppingHistoryUseCase()
@@ -50,7 +54,7 @@ class MyShoppingHistoryViewModel @Inject constructor(
             }
         }
     }
-    fun loadItemsForHistory(historyId: String) {
+    private fun loadItemsForHistory(historyId: String) {
         viewModelScope.launch {
             val items = getItemsForHistoryUseCase(historyId)
             _historyItems.update { currentMap ->
@@ -82,6 +86,7 @@ class MyShoppingHistoryViewModel @Inject constructor(
             try {
                 deleteShoppingHistoryByIdUseCase(id)
                 loadHistory()
+                _snackbarMessage.emit("Lista eliminada")
             } catch (e: Exception) {
                 _errorMessage.value = "No se pudo eliminar la lista: ${e.message}"
             }
@@ -96,6 +101,13 @@ class MyShoppingHistoryViewModel @Inject constructor(
 
         return localDateTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
     }
+    /**
+     * Clears the snackbar message.
+     */
+    fun clearSnackbarMessage() {
+        _snackbarMessage.value = ""
+    }
+
 
 
 }

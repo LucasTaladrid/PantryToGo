@@ -1,6 +1,6 @@
 package com.lucasdev.apprecetas.ingredients.domain.di
 
-import com.lucasdev.apprecetas.ingredients.data.repository.PantryIngredientRepositoryImpl
+import com.lucasdev.apprecetas.ingredients.domain.repository.impl.PantryIngredientRepositoryImpl
 import com.lucasdev.apprecetas.ingredients.domain.repository.PantryIngredientRepository
 import dagger.Binds
 import dagger.Module

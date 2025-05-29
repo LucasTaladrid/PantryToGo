@@ -1,8 +1,8 @@
-package com.lucasdev.apprecetas.users.domain.repository
+package com.lucasdev.apprecetas.users.domain.repository.impl
 
 import com.lucasdev.apprecetas.users.data.datasource.UserFirebaseDataSource
+import com.lucasdev.apprecetas.users.domain.repository.UserRepository
 import javax.inject.Inject
-import javax.inject.Singleton
 
 class UserRepositoryImpl @Inject constructor(
     private val dataSource: UserFirebaseDataSource

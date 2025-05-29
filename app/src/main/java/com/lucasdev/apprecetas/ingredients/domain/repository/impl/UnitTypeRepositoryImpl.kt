@@ -1,4 +1,4 @@
-package com.lucasdev.apprecetas.ingredients.data.repository
+package com.lucasdev.apprecetas.ingredients.domain.repository.impl
 
 
 import com.lucasdev.apprecetas.ingredients.data.datasource.UnitTypeFirebaseDataSource

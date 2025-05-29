@@ -1,4 +1,4 @@
-package com.lucasdev.apprecetas.ingredients.data.repository
+package com.lucasdev.apprecetas.ingredients.domain.repository.impl
 
 import com.lucasdev.apprecetas.ingredients.data.datasource.IngredientFirebaseDataSource
 import com.lucasdev.apprecetas.ingredients.domain.model.IngredientModel
@@ -22,6 +22,13 @@ class IngredientRepositoryImpl @Inject constructor(
      * Retrieves a combined list of common and user-specific ingredients.
      */
     override suspend fun getIngredients(): List<IngredientModel> = dataSource.getIngredients()
+
+    /**
+     * Retrieves only the common ingredients.
+     */
+    override suspend fun getCommonIngredients(): List<IngredientModel> =
+        dataSource.getCommonIngredients()
+
 
     /**
      * Adds a new ingredient to the appropriate collection based on user role.

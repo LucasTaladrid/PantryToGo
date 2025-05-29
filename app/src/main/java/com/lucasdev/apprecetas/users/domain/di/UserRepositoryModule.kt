@@ -1,7 +1,7 @@
 package com.lucasdev.apprecetas.users.domain.di
 
 import com.lucasdev.apprecetas.users.domain.repository.UserRepository
-import com.lucasdev.apprecetas.users.domain.repository.UserRepositoryImpl
+import com.lucasdev.apprecetas.users.domain.repository.impl.UserRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

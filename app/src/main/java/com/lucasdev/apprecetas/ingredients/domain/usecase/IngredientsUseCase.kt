@@ -15,6 +15,21 @@ class GetIngredientsUseCase @Inject constructor(private val repository: Ingredie
 }
 
 /**
+ * Use case to retrieve common ingredients.
+ */
+class GetCommonIngredientsUseCase @Inject constructor(
+    private val repository: IngredientRepository
+) {
+    /**
+     * Invokes the retrieval of common ingredients.
+     */
+    suspend operator fun invoke(): List<IngredientModel> {
+        return repository.getCommonIngredients()
+    }
+}
+
+
+/**
  * Use case to add a new ingredient.
  */
 class AddIngredientUseCase @Inject constructor(private val repository: IngredientRepository) {

@@ -1,5 +1,6 @@
 package com.lucasdev.apprecetas.ingredients.ui.pantry
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -28,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -53,6 +56,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
 import com.lucasdev.apprecetas.general.ui.dropDownSelector.DropdownSelector
 import com.lucasdev.apprecetas.general.ui.scaffold.AppScaffold
+import com.lucasdev.apprecetas.general.ui.textApp.helpText.PantryIngredientHelp
 import com.lucasdev.apprecetas.ingredients.domain.model.CategoryModel
 import com.lucasdev.apprecetas.ingredients.domain.model.IngredientModel
 import com.lucasdev.apprecetas.ingredients.domain.model.PantryIngredientModel
@@ -72,9 +76,8 @@ fun IngredientsScreen(
     val editingIngredient=pantryIngredientsViewModel.selectedIngredientToEdit.collectAsState()
     val groupedIngredients = pantryIngredientsViewModel.groupedIngredients.collectAsState()
     val loading = pantryIngredientsViewModel.isLoading.collectAsState()
+    val context = LocalContext.current
 
-
-    //todo cambiar por viewmodel
     var showDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -92,9 +95,17 @@ fun IngredientsScreen(
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
+    LaunchedEffect(pantryIngredientsViewModel.snackbarMessage.collectAsState().value) {
+        val message = pantryIngredientsViewModel.snackbarMessage.value
+        if (message.isNotEmpty()) {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            pantryIngredientsViewModel.clearSnackbarMessage()
+        }
+    }
 
     AppScaffold(
         userName = userName.value,
+        helpText =  PantryIngredientHelp.pantryHelp,
         onFabClick = {
             showDialog = true
         },
@@ -115,17 +126,7 @@ fun IngredientsScreen(
 
                 if (pantryIngredients.value.isEmpty()) {
                     Text(
-                        text = buildAnnotatedString {
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp)) {
-                                append("¡Está es tú despensa, aquí puedes ver que tienes en la nevera!\n\n")
-                            }
-                            withStyle(style = SpanStyle(fontSize = 16.sp)) {
-                                append("Aquí podrás gestionar y ver los ingredientes que tienes disponibles en casa.\n\n")
-                                append("Usa el botón ➕ para añadir un nuevo ingrediente a tu despensa, selecciona la categoría y recuerda añadir la cantidad.\n")
-                                append("Es posible que cuando quieras añadir un ingrediente no este registrado, puedes registrarlo tú mismo en la pantalla de 'Mis ingredientes'.\n\n")
-                                append("Si quieres modificar un ingrediente o verlo en más detalle mantén pulsado sobre él.\n")
-                            }
-                        },
+                        text = PantryIngredientHelp.pantryHelp,
                         modifier = Modifier
                             .padding(16.dp)
                             .fillMaxWidth(),

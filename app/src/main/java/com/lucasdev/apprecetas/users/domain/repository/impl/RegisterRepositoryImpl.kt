@@ -1,7 +1,8 @@
-package com.lucasdev.apprecetas.users.domain.repository
+package com.lucasdev.apprecetas.users.domain.repository.impl
 
 import com.lucasdev.apprecetas.users.data.datasource.RegisterFirebaseDataSource
 import com.lucasdev.apprecetas.users.domain.model.UserModel
+import com.lucasdev.apprecetas.users.domain.repository.RegisterRepository
 import javax.inject.Inject
 
 class RegisterRepositoryImpl @Inject constructor(

@@ -53,7 +53,6 @@ class PantryIngredientsViewModel @Inject constructor(
     private val getUnitTypeUseCase: GetUnitTypeUseCase,
     private val getCategoriesUseCase: GetCategoriesUseCase,
     private val getUserPantryIngredientByIngredientIdUseCase: GetUserPantryIngredientByIngredientIdUseCase
-
     ) : ViewModel() {
 
     /** Flag indicating whether the current user has admin privileges. */
@@ -114,6 +113,10 @@ class PantryIngredientsViewModel @Inject constructor(
     /** State holding pantry ingredients grouped by category for UI display. */
     private val _groupedIngredients = MutableStateFlow<List<PantryIngredientSection>>(emptyList())
     val groupedIngredients: StateFlow<List<PantryIngredientSection>> = _groupedIngredients
+
+    /** Holds any error message to show in UI */
+    private val _snackbarMessage =MutableStateFlow<String>("")
+    val snackbarMessage :StateFlow<String> = _snackbarMessage
 
     init {
         viewModelScope.launch {
@@ -282,7 +285,9 @@ class PantryIngredientsViewModel @Inject constructor(
             if (existingIngredient != null) {
                 val updatedIngredient = existingIngredient.copy(
                     quantity = existingIngredient.quantity + quantity
+
                 )
+                _snackbarMessage.emit("Ingrediente actualizado")
                 val success = updateUserPantryIngredientUseCase(updatedIngredient)
                 if (success) {
                     _pantryIngredients.value = _pantryIngredients.value.map {
@@ -299,6 +304,7 @@ class PantryIngredientsViewModel @Inject constructor(
                     unit = ingredient.unit,
                     quantity = quantity
                 )
+                _snackbarMessage.emit("Ingrediente añadido")
 
                 val addedIngredient = addUserPantryIngredientUseCase(newIngredient)
                 _pantryIngredients.value = _pantryIngredients.value + addedIngredient
@@ -323,6 +329,7 @@ class PantryIngredientsViewModel @Inject constructor(
                         if (it.id == updated.id) updated else it
                     }
                     closeEditDialog()
+                    _snackbarMessage.emit("Ingrediente actualizado")
                 } else {
                     Log.e("PantryIngredientsViewModel", "Failed to update ingredient")
                 }
@@ -351,9 +358,17 @@ class PantryIngredientsViewModel @Inject constructor(
             if (success) {
                 loadUserPantryIngredients()
                 closeEditDialog()
+                _snackbarMessage.emit("Ingrediente eliminado")
             } else {
                 Log.e("PantryIngredientsViewModel", "Failed to delete ingredient")
             }
         }
+    }
+
+    /**
+     * Clears the snackbar message.
+     */
+    fun clearSnackbarMessage() {
+        _snackbarMessage.value = ""
     }
 }

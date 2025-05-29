@@ -60,6 +60,10 @@ class MyPendingRecipesViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    /** Holds any error message to show in UI */
+    private val _snackbarMessage =MutableStateFlow<String>("")
+    val snackbarMessage :StateFlow<String> = _snackbarMessage
+
 
     init {
         viewModelScope.launch {
@@ -140,8 +144,10 @@ class MyPendingRecipesViewModel @Inject constructor(
         viewModelScope.launch {
             if (isFavorite(recipe)) {
                 removeFromFavoritesUseCase(recipe)
+                _snackbarMessage.emit("Receta eliminada de favoritos")
             } else {
                 addToFavoritesUseCase(recipe)
+                _snackbarMessage.emit("Receta añadida a favoritos")
             }
             loadFavoriteRecipes()
         }
@@ -157,9 +163,11 @@ class MyPendingRecipesViewModel @Inject constructor(
             val activeShoppingList = shoppingLists.firstOrNull()
             if (isPending(recipe) && activeShoppingList != null) {
                 removeFromPendingUseCase(recipe, activeShoppingList.id)
+                _snackbarMessage.emit("Receta eliminada de la lista de pendientes")
             } else {
                 if (activeShoppingList != null)
                     addToPendingUseCase(recipe, activeShoppingList.id)
+                _snackbarMessage.emit("Receta añadida a la lista de pendientes")
             }
             loadPendingRecipes()
             refresh()
@@ -173,8 +181,16 @@ class MyPendingRecipesViewModel @Inject constructor(
     fun markAsCooked(recipe: RecipeModel) {
         viewModelScope.launch {
             markRecipeAsCookedUseCase(recipe)
+            _snackbarMessage.emit("Receta cocinada")
         }
         refresh()
+    }
+
+    /**
+     * Clears the snackbar message.
+     */
+    fun clearSnackbarMessage() {
+        _snackbarMessage.value = ""
     }
 
 }

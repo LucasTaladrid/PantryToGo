@@ -10,6 +10,7 @@ import com.lucasdev.apprecetas.ingredients.domain.model.UnitTypeModel
 import com.lucasdev.apprecetas.ingredients.domain.usecase.AddIngredientUseCase
 import com.lucasdev.apprecetas.ingredients.domain.usecase.DeleteIngredientUseCase
 import com.lucasdev.apprecetas.ingredients.domain.usecase.GetCategoriesUseCase
+import com.lucasdev.apprecetas.ingredients.domain.usecase.GetCommonIngredientsUseCase
 import com.lucasdev.apprecetas.ingredients.domain.usecase.GetIngredientsUseCase
 import com.lucasdev.apprecetas.ingredients.domain.usecase.GetUnitTypeUseCase
 import com.lucasdev.apprecetas.ingredients.domain.usecase.GetUserIngredientUseCase
@@ -34,7 +35,8 @@ class MyIngredientsViewModel @Inject constructor(
     private val getUnitTypeUseCase: GetUnitTypeUseCase,
     private val getCategoriesUseCase: GetCategoriesUseCase,
     private val getUserIngredientUseCase: GetUserIngredientUseCase,
-    private val isAdminUseCase: IsAdminUseCase
+    private val isAdminUseCase: IsAdminUseCase,
+    private val getCommonIngredientsUseCase: GetCommonIngredientsUseCase
 ) : ViewModel() {
 
     /** Sections of ingredients grouped by category for display */
@@ -48,6 +50,9 @@ class MyIngredientsViewModel @Inject constructor(
     /** List of available categories */
     private val _categories = MutableStateFlow<List<CategoryModel>>(emptyList())
     val categories: StateFlow<List<CategoryModel>> = _categories
+
+    private val _commonIngredients = MutableStateFlow<List<IngredientModel>>(emptyList())
+    val commonIngredients : StateFlow<List<IngredientModel>> = _commonIngredients
 
     /** List of available unit types */
     private val _units = MutableStateFlow<List<UnitTypeModel>>(emptyList())
@@ -88,12 +93,18 @@ class MyIngredientsViewModel @Inject constructor(
     private val _duplicateIngredient = MutableStateFlow<IngredientModel?>(null)
     val duplicateIngredient: StateFlow<IngredientModel?> = _duplicateIngredient
 
+    /** Holds any error message to show in UI */
+    private val _snackbarMessage = MutableStateFlow<String>("")
+    val snackbarMessage: StateFlow<String> = _snackbarMessage
+
     init {
         viewModelScope.launch {
             loadIngredients()
             loadCategoriesAndUnits()
             loadIngredientsForDisplay()
             checkIfUserIsAdmin()
+            loadCommonIngredients()
+
         }
     }
 
@@ -103,6 +114,12 @@ class MyIngredientsViewModel @Inject constructor(
             _isAdmin.value = isAdminUseCase()
         }
     }
+    /**Load common ingredients from the repository */
+    private suspend fun loadCommonIngredients() {
+        val commonList = getCommonIngredientsUseCase()
+        _commonIngredients.value = commonList
+    }
+
 
     /** Loads categories and unit types from the repository */
     private suspend fun loadCategoriesAndUnits() {
@@ -141,10 +158,14 @@ class MyIngredientsViewModel @Inject constructor(
     suspend fun loadIngredientsForDisplay() {
         val isAdmin = isAdminUseCase()
 
+        val userIngredients = getUserIngredientUseCase()
+
         val ingredients = if (isAdmin) {
-            getIngredientsUseCase()
+            val commonIngredients = getCommonIngredientsUseCase()
+            _commonIngredients.value = commonIngredients // Opcional: para mostrarlos aparte
+            userIngredients + commonIngredients
         } else {
-            getUserIngredientUseCase()
+            userIngredients
         }
 
         _ingredientSections.value = ingredients
@@ -157,6 +178,8 @@ class MyIngredientsViewModel @Inject constructor(
             }
             .sortedBy { it.category }
     }
+
+
 
     /** Opens the dialog for adding a new ingredient */
     fun showAddIngredientDialog() {
@@ -223,6 +246,7 @@ class MyIngredientsViewModel @Inject constructor(
                 hideAddIngredientDialog()
                 loadIngredients()
                 loadIngredientsForDisplay()
+                _snackbarMessage.emit("Ingrediente añadido")
             }
         }
     }
@@ -234,6 +258,7 @@ class MyIngredientsViewModel @Inject constructor(
                 deleteIngredientUseCase(ingredient.id)
                 loadIngredients()
                 loadIngredientsForDisplay()
+                _snackbarMessage.emit("Ingrediente eliminado")
             }
         }
         _showDeleteConfirmation.value = false
@@ -250,11 +275,19 @@ class MyIngredientsViewModel @Inject constructor(
                 val success = updateIngredientUseCase(updatedIngredient)
                 if (success) {
                     loadIngredientsForDisplay()
+                    _snackbarMessage.emit("Ingrediente actualizado")
                 } else {
                     _errorMessage.value = "Failed to update ingredient"
                 }
             }
             _showEditDialog.value = false
         }
+    }
+
+    /**
+     * Clears the snackbar message.
+     */
+    fun clearSnackbarMessage() {
+        _snackbarMessage.value = ""
     }
 }

@@ -1,4 +1,4 @@
-package com.lucasdev.apprecetas.shopping.data.repository
+package com.lucasdev.apprecetas.shopping.domain.repository.impl
 
 import com.lucasdev.apprecetas.shopping.data.datasource.ShoppingListFirebaseDataSource
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingHistoryModel

@@ -3,6 +3,7 @@ package com.lucasdev.apprecetas.general.ui.scaffold
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
@@ -18,9 +19,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
 import com.lucasdev.apprecetas.general.ui.appButtons.FAB
 import kotlinx.coroutines.launch
 
@@ -39,11 +42,13 @@ fun AppScaffoldWithoutBottomBar(
     title: String,
     onBackClick: () -> Unit,
     content: @Composable (PaddingValues) -> Unit,
-    onFabClick: (() -> Unit)? = null
+    onFabClick: (() -> Unit)? = null,
+    helpText: AnnotatedString? = null,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val showHelpDialog = remember { mutableStateOf(false) }
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -54,11 +59,18 @@ fun AppScaffoldWithoutBottomBar(
             }
         }
     ) {
+        if (showHelpDialog.value && helpText != null) {
+            HelpDialog(
+                helpText = helpText,
+                onDismiss = { showHelpDialog.value = false }
+            )
+        }
         Scaffold(
             topBar = {
                 TopBarWithBackButton(
                     title = title,
-                    onBackClick = onBackClick
+                    onBackClick = onBackClick,
+                    onClickHelp = {showHelpDialog.value = true     }
                 )
             },
             snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -81,7 +93,7 @@ fun AppScaffoldWithoutBottomBar(
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBarWithBackButton(title: String, onBackClick: () -> Unit) {
+fun TopBarWithBackButton(title: String, onBackClick: () -> Unit, onClickHelp: (() -> Unit)? = null) {
     TopAppBar(
         title = { Text(title) },
         colors = TopAppBarDefaults.topAppBarColors(
@@ -94,6 +106,16 @@ fun TopBarWithBackButton(title: String, onBackClick: () -> Unit) {
                     imageVector = Icons.Filled.ArrowBack,
                     contentDescription = "Volver"
                 )
+            }
+        },
+        actions = {
+            onClickHelp?.let {
+                IconButton(onClick = { onClickHelp() }) {
+                    Icon(
+                        imageVector = Icons.Filled.HelpOutline,
+                        contentDescription = "Ayuda"
+                    )
+                }
             }
         }
     )
