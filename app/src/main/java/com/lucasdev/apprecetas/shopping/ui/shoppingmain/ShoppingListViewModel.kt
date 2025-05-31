@@ -29,6 +29,19 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel for the shopping list screen.
+ * @property getShoppingLists Use case to retrieve shopping lists.
+ * @property addShoppingList Use case to add a new shopping list.
+ * @property addIngredientToShoppingList Use case to add an ingredient to a shopping list.
+ * @property getIngredientsUseCase Use case to retrieve ingredients.
+ * @property getCategoriesUseCase Use case to retrieve categories.
+ * @property getItemsForList Use case to retrieve items for a specific list.
+ * @property updateIngredientCheckedStatus Use case to update the checked status of an ingredient.
+ * @property deleteItemFromShoppingListUseCase Use case to delete an item from a shopping list.
+ * @property updateItemInShoppingListUseCase Use case to update an item in a shopping list.
+ * @property saveShoppingHistoryUseCase Use case to save a shopping history.
+ */
 @HiltViewModel
 class ShoppingListViewModel @Inject constructor(
     private val getShoppingLists: GetShoppingListsUseCase,
@@ -42,34 +55,43 @@ class ShoppingListViewModel @Inject constructor(
     private val updateItemInShoppingListUseCase: UpdateItemInShoppingListUseCase,
     private val saveShoppingHistoryUseCase: SaveShoppingHistoryUseCase,
 ) : ViewModel() {
-
+    /** State holding the list of ingredients. */
     private val _ingredients = MutableStateFlow<List<IngredientModel>>(emptyList())
     val ingredients: StateFlow<List<IngredientModel>> = _ingredients
 
+    /** State holding the list of active list items. */
     private val _activeListItems = MutableStateFlow<List<ShoppingIngredientModel>>(emptyList())
     val activeListItems: StateFlow<List<ShoppingIngredientModel>> = _activeListItems
 
+    /** State holding the list of categories. */
     private val _categories = MutableStateFlow<List<CategoryModel>>(emptyList())
     val categories: StateFlow<List<CategoryModel>> = _categories
 
+    /** State holding the list of shopping lists. */
     private val _shoppingLists = MutableStateFlow<List<ShoppingListModel>>(emptyList())
     val shoppingLists: StateFlow<List<ShoppingListModel>> = _shoppingLists
 
+    /** State indicating whether data is loading. */
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    /** State holding any error message, if any. */
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
+    /** State holding the user's name. */
     private val _userName = MutableStateFlow("")
     val userName: StateFlow<String> = _userName
 
+    /** State holding the ID of the active shopping list. */
     private val _activeListId = MutableStateFlow<String?>(null)
     val activeListId: StateFlow<String?> = _activeListId
 
+    /** State holding the list of shopping item sections. */
     private val _shoppingItemSections = MutableStateFlow<List<ShoppingItemSection>>(emptyList())
     val shoppingItemSections: StateFlow<List<ShoppingItemSection>> = _shoppingItemSections
 
+    /** Holds any error message to show in UI */
     private val _snackbarMessage =MutableStateFlow<String>("")
     val snackbarMessage :StateFlow<String> = _snackbarMessage
 
@@ -83,6 +105,9 @@ class ShoppingListViewModel @Inject constructor(
         loadIngredientsAndCategories()
     }
 
+    /**
+     * Refreshes the shopping list data by loading ingredients and categories.
+     */
     fun refreshShoppingList() {
         viewModelScope.launch {
             loadLists()
@@ -90,6 +115,9 @@ class ShoppingListViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Loads ingredients and categories from the use cases.
+     */
     private fun loadIngredientsAndCategories() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -104,6 +132,9 @@ class ShoppingListViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Ensures that there is an active shopping list. If none exists, creates a new one.
+     */
     private fun ensureActiveListExists() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -135,6 +166,9 @@ class ShoppingListViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Loads the list of shopping lists from the use case.
+     */
     private fun loadLists() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -157,6 +191,9 @@ class ShoppingListViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Loads the active list items from the use case.
+     */
     private fun loadActiveListItems() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -182,6 +219,9 @@ class ShoppingListViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Retrieves the user's name from Firebase Firestore.
+     */
     private fun getUserName() {
         val currentUser = FirebaseAuth.getInstance().currentUser
         if (currentUser != null) {
@@ -202,6 +242,9 @@ class ShoppingListViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Adds an ingredient to the active shopping list.
+     */
     fun addIngredientToList(ingredient: IngredientModel, quantity: Double) {
         viewModelScope.launch {
             var activeList = _shoppingLists.value.firstOrNull()
@@ -243,6 +286,9 @@ class ShoppingListViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Updates the checked status of an ingredient in the shopping list.
+     */
     fun toggleItemChecked(listId: String, itemId: String, isChecked: Boolean) {
         viewModelScope.launch {
             try {
@@ -268,11 +314,17 @@ class ShoppingListViewModel @Inject constructor(
             }
         }
     }
+
+    /**
+     * Clears the snackbar message.
+     */
     fun clearSnackbarMessage() {
         _snackbarMessage.value = ""
     }
 
-
+    /**
+     * Moves checked items from the pantry to the shopping list.
+     */
     fun moveCheckedItemsToPantry(pantryIngredientsViewModel: PantryIngredientsViewModel) {
         viewModelScope.launch {
             val activeList = _shoppingLists.value.firstOrNull()
@@ -324,6 +376,9 @@ class ShoppingListViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Updates an item in the shopping list.
+     */
     fun updateItem(item: ShoppingIngredientModel) {
         viewModelScope.launch {
             try {
@@ -341,6 +396,9 @@ class ShoppingListViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Deletes an item from the shopping list.
+     */
     fun deleteItem(item: ShoppingIngredientModel) {
         viewModelScope.launch {
             try {

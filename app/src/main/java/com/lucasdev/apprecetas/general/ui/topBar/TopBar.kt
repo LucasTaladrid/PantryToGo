@@ -31,7 +31,7 @@ fun TopBar(
         modifier = Modifier.statusBarsPadding(),
         title = { Text("Hola $userName") },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = colorResource(id = R.color.dark_orange),
+            containerColor = colorResource(id = R.color.orange_test_two),
             titleContentColor = Color.Black
         ),
         navigationIcon = {

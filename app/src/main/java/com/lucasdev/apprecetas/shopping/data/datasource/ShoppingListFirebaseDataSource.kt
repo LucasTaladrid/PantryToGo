@@ -15,14 +15,26 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import javax.inject.Inject
 
+/**
+ * Firebase data source for shopping lists.
+ */
 class ShoppingListFirebaseDataSource @Inject constructor() {
     private val db = Firebase.firestore
     private val uid = Firebase.auth.currentUser?.uid ?: "anon"
 
+    /**
+     * Returns a reference to the shopping list items collection for a given list ID.
+     * @param listId The ID of the shopping list.
+     * @return A reference to the items collection.
+     */
     private fun shoppingListItemsRef(listId: String) = db.collection("users").document(uid).collection("shoppingLists")
         .document(listId)
         .collection("items")
 
+    /**
+     * Retrieves a list of shopping lists for the current user.
+     * @return A list of [ShoppingListModel] objects.
+     */
     suspend fun getShoppingLists(): List<ShoppingListModel> {
         val snapshot = db.collection("users").document(uid)
             .collection("shoppingLists")
@@ -35,6 +47,11 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
         }
     }
 
+    /**
+     * Retrieves a list of shopping list items for a given list ID.
+     * @param listId The ID of the shopping list.
+     * @return A list of [ShoppingIngredientModel] objects.
+     */
     suspend fun getItemsForList(listId: String): List<ShoppingIngredientModel> {
         val itemsSnapshot = shoppingListItemsRef(listId).get().await()
 
@@ -44,6 +61,13 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
 
     }
 
+    /**
+     * Updates the checked status of an ingredient in a shopping list.
+     * @param listId The ID of the shopping list.
+     * @param itemId The ID of the ingredient item.
+     * @param checked The new checked status.
+     * @return True if the update was successful, false otherwise.
+     */
     suspend fun updateIngredientCheckedStatus(listId: String, itemId: String, checked: Boolean): Boolean {
         return try {
             val itemRef = shoppingListItemsRef(listId).document(itemId)
@@ -58,6 +82,11 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
         }
     }
 
+    /**
+     * Updates the references of an ingredient in all shopping lists.
+     * @param updatedIngredient The updated ingredient.
+     * @return True if the update was successful, false otherwise.
+     */
     suspend fun updateIngredientReferencesInShoppingLists(updatedIngredient: IngredientModel) {
         try {
             val usersSnapshot = db.collection("users").get().await()
@@ -91,6 +120,11 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
         }
     }
 
+    /**
+     * Adds a new shopping list to the user's account.
+     * @param list The shopping list to add.
+     * @return The added shopping list with its ID, or null if the addition failed.
+     */
     suspend fun addShoppingList(list: ShoppingListModel): ShoppingListModel? {
         val uid = Firebase.auth.currentUser?.uid ?: return null
         val docRef = Firebase.firestore.collection("users").document(uid)
@@ -105,6 +139,12 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
         }
     }
 
+    /**
+     * Deletes an item from a shopping list.
+     * @param listId The ID of the shopping list.
+     * @param itemId The ID of the item to delete.
+     * @return True if the deletion was successful, false otherwise.
+     */
     suspend fun deleteItemFromList(listId: String, itemId: String): Boolean {
         return try {
             shoppingListItemsRef(listId).document(itemId).delete().await()
@@ -114,6 +154,12 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
         }
     }
 
+    /**
+     * Adds or updates an ingredient in a shopping list.
+     * @param listId The ID of the shopping list.
+     * @param ingredient The ingredient to add or update.
+     * @return True if the operation was successful, false otherwise.
+     */
     suspend fun addIngredientToShoppingListItemCollection(listId: String, ingredient: ShoppingIngredientModel): Boolean {
         return try {
             val docRef = shoppingListItemsRef(listId).document(ingredient.ingredientId)
@@ -135,6 +181,12 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
         }
     }
 
+    /**
+     * Updates an item in a shopping list.
+     * @param listId The ID of the shopping list.
+     * @param item The item to update.
+     * @return True if the update was successful, false otherwise.
+     */
     suspend fun updateItemInShoppingList(listId: String, item: ShoppingIngredientModel): Boolean {
         return try {
             shoppingListItemsRef(listId)
@@ -148,20 +200,24 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
         }
     }
 
-    //todo comprobar que funciona que se almacenen solo 5 historiales, cambiar casos de uso y repositorio
+
+    /**
+     * Saves a shopping history to the user's account.
+     * @param history The shopping history to save.
+     * @param maxHistory The maximum number of histories to keep.
+     * @return The saved shopping history with its ID, or null if the save failed.
+     */
     suspend fun saveShoppingHistory(history: ShoppingHistoryModel, maxHistory: Int = 5): ShoppingHistoryModel? {
         val collectionRef = db.collection("users")
             .document(uid)
             .collection("shoppingHistory")
 
         val newDocRef = collectionRef.document()
-        val historyWithoutItems = history.copy(id = newDocRef.id, items = emptyList()) // Guardamos solo metadatos
+        val historyWithoutItems = history.copy(id = newDocRef.id, items = emptyList())
 
         return try {
-            // 1. Guarda la metadata sin los items
             newDocRef.set(historyWithoutItems).await()
 
-            // 2. Guarda los items en una subcolección
             val itemsCollection = newDocRef.collection("items")
             history.items.forEach { item ->
                 val docRef = itemsCollection.document()
@@ -169,7 +225,6 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
                 docRef.set(itemWithId).await()
             }
 
-            // 3. Elimina historiales antiguos si hay más de maxHistory
             val allHistories = collectionRef
                 .orderBy("date", Query.Direction.DESCENDING)
                 .get()
@@ -181,13 +236,18 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
                 historiesToDelete.forEach { it.reference.delete().await() }
             }
 
-            history.copy(id = newDocRef.id) // retornamos con el ID asignado
+            history.copy(id = newDocRef.id)
         } catch (e: Exception) {
             Log.e("ShoppingListDataSource", "Error al guardar historial: ${e.message}")
             null
         }
     }
 
+    /**
+     * Retrieves the most recent shopping histories for the current user.
+     * @param limit The maximum number of histories to retrieve.
+     * @return A list of [ShoppingHistoryModel] objects.
+     */
     suspend fun getRecentShoppingHistory(limit: Long = 5): List<ShoppingHistoryModel> {
         return db.collection("users")
             .document(uid)
@@ -200,6 +260,11 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
             .mapNotNull { it.toObject(ShoppingHistoryModel::class.java) }
     }
 
+    /**
+     * Deletes a shopping history by its ID.
+     * @param historyId The ID of the shopping history to delete.
+     * @return True if the deletion was successful, false otherwise.
+     */
     suspend fun deleteShoppingHistoryById(historyId: String): Boolean {
         return try {
             db.collection("users")
@@ -215,6 +280,11 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
         }
     }
 
+    /**
+     * Retrieves the items for a specific shopping history.
+     * @param historyId The ID of the shopping history.
+     * @return A list of [ShoppingIngredientModel] objects.
+     */
     suspend fun getItemsForHistory(historyId: String): List<ShoppingIngredientModel> {
         return try {
             db.collection("users")
@@ -232,6 +302,11 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
         }
     }
 
+    /**
+     * Subtracts ingredients from a shopping list.
+     * @param listId The ID of the shopping list.
+     * @param ingredients The ingredients to subtract.
+     */
     suspend fun subtractIngredientsFromShoppingList(listId: String, ingredients: List<ShoppingIngredientModel>) {
         for (ingredient in ingredients) {
             try {

@@ -17,23 +17,30 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
+/**
+ * ViewModel for the shopping history screen.
+ * @property getRecentShoppingHistoryUseCase Use case to retrieve recent shopping history.
+ * @property deleteShoppingHistoryByIdUseCase Use case to delete a shopping history by ID.
+ * @property getItemsForHistoryUseCase Use case to retrieve items for a specific history ID.
+ */
 @HiltViewModel
 class MyShoppingHistoryViewModel @Inject constructor(
     private val getRecentShoppingHistoryUseCase: GetRecentShoppingHistoryUseCase,
     private val deleteShoppingHistoryByIdUseCase: DeleteShoppingHistoryByIdUseCase,
     private val getItemsForHistoryUseCase: GetItemsForHistoryUseCase
 ) : ViewModel() {
-
+    /** Holds the list of shopping history items */
     private val _history = MutableStateFlow<List<ShoppingHistoryModel>>(emptyList())
     val history: StateFlow<List<ShoppingHistoryModel>> = _history
-
+    /** Holds the items for each history ID */
     private val _historyItems = MutableStateFlow<Map<String, List<ShoppingIngredientModel>>>(emptyMap())
     val historyItems: StateFlow<Map<String, List<ShoppingIngredientModel>>> = _historyItems
 
-
+    /** Holds the currently expanded item IDs */
     private val _expandedItems = MutableStateFlow(setOf<String>())
     val expandedItems: StateFlow<Set<String>> = _expandedItems
 
+    /** Holds any error message to show in UI */
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
@@ -45,6 +52,9 @@ class MyShoppingHistoryViewModel @Inject constructor(
         loadHistory()
     }
 
+    /**
+     * Loads the shopping history from the use case.
+     */
     private fun loadHistory() {
         viewModelScope.launch {
             try {
@@ -54,6 +64,10 @@ class MyShoppingHistoryViewModel @Inject constructor(
             }
         }
     }
+
+    /**
+     * Loads items for a specific history ID.
+     */
     private fun loadItemsForHistory(historyId: String) {
         viewModelScope.launch {
             val items = getItemsForHistoryUseCase(historyId)
@@ -64,7 +78,9 @@ class MyShoppingHistoryViewModel @Inject constructor(
     }
 
 
-
+    /**
+     * Toggles the expansion state of an item.
+     */
     fun toggleExpanded(id: String) {
         val isExpanded = _expandedItems.value.contains(id)
 
@@ -81,6 +97,9 @@ class MyShoppingHistoryViewModel @Inject constructor(
     }
 
 
+    /**
+     * Deletes a shopping history item by its ID.
+     */
     fun deleteHistoryItem(id: String) {
         viewModelScope.launch {
             try {
@@ -93,6 +112,9 @@ class MyShoppingHistoryViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Formats a timestamp to a readable date string.
+     */
     fun formatTimestamp(timestamp: Timestamp): String {
         val localDateTime = timestamp.toDate()
             .toInstant()
@@ -107,7 +129,5 @@ class MyShoppingHistoryViewModel @Inject constructor(
     fun clearSnackbarMessage() {
         _snackbarMessage.value = ""
     }
-
-
 
 }

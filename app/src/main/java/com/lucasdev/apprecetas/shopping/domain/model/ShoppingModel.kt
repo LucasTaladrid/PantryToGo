@@ -5,7 +5,7 @@ import com.lucasdev.apprecetas.ingredients.domain.model.CategoryModel
 import com.lucasdev.apprecetas.ingredients.domain.model.UnitTypeModel
 
 
-//todo puede que la lista la haya que cambiar, tengo que ver como asignar esas cantidades
+
 data class ShoppingListModel(
     val id: String = "",
     val title: String = "",

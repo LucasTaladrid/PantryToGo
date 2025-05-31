@@ -1,231 +1,137 @@
 @startuml
-class MainActivity {
-  +onCreate(savedInstanceState: Bundle): void
-  -loginViewModel: LoginScreenViewModel
-  -ingredientsViewModel: IngredientsViewModel
-  -navController: NavController
+' ============================
+' Módulo: ingredients
+' ============================
+top to bottom direction
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+
+package ingredients {
+  class MyIngredientsViewModel
+  class AddIngredientUseCase
+  class DeleteIngredientUseCase
+  class UpdateIngredientUseCase
+  class GetIngredientsUseCase
+  class GetCategoriesUseCase
+  class GetUnitTypeUseCase
+  class GetUserIngredientUseCase
+  class GetCommonIngredientsUseCase
+  class IsAdminUseCase
 }
 
-class IngredientsScreen {
-  +ingredientsViewModel: IngredientsViewModel
-  +displayIngredients(): void
-  +onIngredientTap(ingredient: IngredientModel): void
+MyIngredientsViewModel --> AddIngredientUseCase
+MyIngredientsViewModel --> DeleteIngredientUseCase
+MyIngredientsViewModel --> UpdateIngredientUseCase
+MyIngredientsViewModel --> GetIngredientsUseCase
+MyIngredientsViewModel --> GetCategoriesUseCase
+MyIngredientsViewModel --> GetUnitTypeUseCase
+MyIngredientsViewModel --> GetUserIngredientUseCase
+MyIngredientsViewModel --> GetCommonIngredientsUseCase
+MyIngredientsViewModel --> IsAdminUseCase
+@enduml
+
+
+@startuml
+' ============================
+' Módulo: pantry
+' ============================
+top to bottom direction
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+
+package pantry {
+  class PantryIngredientsViewModel
+  class GetUserPantryIngredientsUseCase
+  class AddUserPantryIngredientUseCase
+  class UpdateUserPantryIngredientUseCase
+  class DeleteUserPantryIngredientUseCase
+  class GetUserPantryIngredientByIngredientIdUseCase
 }
 
-class IngredientsViewModel {
-  +ingredients: StateFlow<List<IngredientModel>>
-  +loadIngredients(): void
-  +addIngredient(ingredient: IngredientModel): void
-  +updateIngredient(ingredient: IngredientModel): void
-  +deleteIngredient(id: Int): void
+PantryIngredientsViewModel --> GetUserPantryIngredientsUseCase
+PantryIngredientsViewModel --> AddUserPantryIngredientUseCase
+PantryIngredientsViewModel --> UpdateUserPantryIngredientUseCase
+PantryIngredientsViewModel --> DeleteUserPantryIngredientUseCase
+PantryIngredientsViewModel --> GetUserPantryIngredientByIngredientIdUseCase
+@enduml
+
+
+@startuml
+' ============================
+' Módulo: recipes
+' ============================
+top to bottom direction
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+
+package recipes {
+  class RecipeViewModel
+  class MyPendingRecipesViewModel
+  class MyRecipesScreenViewModel
+  class MyFavoritesRecipesViewModel
+  class GetCommonRecipesUseCase
+  class AddRecipeUseCase
+  class AddRecipeToFavoritesUseCase
+  class RemoveRecipeFromFavoritesUseCase
+  class AddRecipeToPendingUseCase
+  class RemoveRecipeFromPendingUseCase
+  class GetFavoritesRecipesUseCase
+  class GetPendingRecipesUseCase
+  class GetUserRecipeUseCase
+  class DeleteRecipeUseCase
+  class UpdateRecipeUseCase
+  class MarkRecipeAsCookedUseCase
 }
 
-class IngredientModel {
-  - id: Int
-  - name: String
-  - type: TypeIngredientModel
-  - unit: UnitTypeModel
-  - quantity: Double
+RecipeViewModel --> GetCommonRecipesUseCase
+RecipeViewModel --> AddRecipeUseCase
+RecipeViewModel --> AddRecipeToFavoritesUseCase
+RecipeViewModel --> RemoveRecipeFromFavoritesUseCase
+RecipeViewModel --> AddRecipeToPendingUseCase
+RecipeViewModel --> RemoveRecipeFromPendingUseCase
+RecipeViewModel --> GetFavoritesRecipesUseCase
+RecipeViewModel --> GetPendingRecipesUseCase
+RecipeViewModel --> GetUserRecipeUseCase
+RecipeViewModel --> DeleteRecipeUseCase
+RecipeViewModel --> UpdateRecipeUseCase
+RecipeViewModel --> MarkRecipeAsCookedUseCase
+@enduml
+
+
+@startuml
+' ============================
+' Módulo: shopping
+' ============================
+top to bottom direction
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+
+package shopping {
+  class ShoppingListViewModel
+  class MyShoppingHistoryViewModel
+  class GetShoppingListsUseCase
+  class AddShoppingListUseCase
+  class AddIngredientToShoppingListUseCase
+  class GetItemsForListUseCase
+  class UpdateIngredientCheckedStatusUseCase
+  class DeleteItemFromShoppingListUseCase
+  class UpdateItemInShoppingListUseCase
+  class SaveShoppingHistoryUseCase
+  class GetRecentShoppingHistoryUseCase
+  class DeleteShoppingHistoryByIdUseCase
+  class GetItemsForHistoryUseCase
 }
 
-class TypeIngredientModel {
-  - id: Int
-  - name: String
-}
+ShoppingListViewModel --> GetShoppingListsUseCase
+ShoppingListViewModel --> AddShoppingListUseCase
+ShoppingListViewModel --> AddIngredientToShoppingListUseCase
+ShoppingListViewModel --> GetItemsForListUseCase
+ShoppingListViewModel --> UpdateIngredientCheckedStatusUseCase
+ShoppingListViewModel --> DeleteItemFromShoppingListUseCase
+ShoppingListViewModel --> UpdateItemInShoppingListUseCase
+ShoppingListViewModel --> SaveShoppingHistoryUseCase
 
-class UnitTypeModel {
-  - id: Int
-  - name: String
-}
-
-interface IngredientRepository {
-  +getIngredients(): List<IngredientModel>
-  +addIngredient(ingredient: IngredientModel): Boolean
-  +updateIngredient(ingredient: IngredientModel): Boolean
-  +deleteIngredient(id: Int): Boolean
-}
-
-class AddIngredientUseCase {
-  +execute(ingredient: IngredientModel): Boolean
-}
-
-class DeleteIngredientUseCase {
-  +execute(id: Int): Boolean
-}
-
-class GetIngredientsUseCase {
-  +execute(): List<IngredientModel>
-}
-
-class UpdateIngredientUseCase {
-  +execute(ingredient: IngredientModel): Boolean
-}
-
-class RecipeModel {
-  - id: Int
-  - name: String
-  - ingredients: List<IngredientModel>
-  - description: String
-  - photoUrl: String
-  - instructions: String
-}
-
-class ShoppingModel {
-  - id: Int
-  - userId: String
-  - ingredients: List<IngredientModel>
-  - status: ShoppingStatus
-}
-
-enum ShoppingStatus {
-  PENDING
-  PURCHASED
-}
-
-class UserModel {
-  - uid: String
-  - name: String
-  - email: String
-  - status: UserStatus
-  - isAdmin: Boolean
-  - ingredients: List<IngredientModel>
-  - recipes: List<RecipeModel>
-  - shoppingList: List<ShoppingModel>
-}
-
-enum UserStatus {
-  FREE
-  PREMIUM
-}
-
-interface UserRepository {
-  +getUser(uid: String): UserModel
-  +updateUser(user: UserModel): Boolean
-}
-
-class LoginScreenViewModel {
-  +email: MutableStateFlow<String>
-  +password: MutableStateFlow<String>
-  +isLoginEnable: MutableStateFlow<Boolean>
-  +loginUser(onSuccess: () -> Unit, onError: (String) -> Unit): void
-}
-
-class RegisterScreenViewModel {
-  +name: MutableStateFlow<String>
-  +email: MutableStateFlow<String>
-  +password: MutableStateFlow<String>
-  +confirmPassword: MutableStateFlow<String>
-  +isRegisterEnabled: MutableStateFlow<Boolean>
-  +registerUser(onSuccess: () -> Unit, onError: (String) -> Unit): void
-}
-
-class RecipeRepository {
-  +getRecipes(): List<RecipeModel>
-  +addRecipe(recipe: RecipeModel): Boolean
-  +updateRecipe(recipe: RecipeModel): Boolean
-  +deleteRecipe(id: Int): Boolean
-}
-
-interface ShoppingRepository {
-  +getShoppingList(userId: String): List<ShoppingModel>
-  +addShoppingList(shoppingList: ShoppingModel): Boolean
-  +updateShoppingList(shoppingList: ShoppingModel): Boolean
-  +deleteShoppingList(id: Int): Boolean
-}
-
-class AddRecipeUseCase {
-  +execute(recipe: RecipeModel): Boolean
-}
-
-class DeleteRecipeUseCase {
-  +execute(id: Int): Boolean
-}
-
-class GetRecipesUseCase {
-  +execute(): List<RecipeModel>
-}
-
-class UpdateRecipeUseCase {
-  +execute(recipe: RecipeModel): Boolean
-}
-
-class AddShoppingUseCase {
-  +execute(shoppingList: ShoppingModel): Boolean
-}
-
-class DeleteShoppingUseCase {
-  +execute(id: Int): Boolean
-}
-
-class GetShoppingUseCase {
-  +execute(userId: String): List<ShoppingModel>
-}
-
-class UpdateShoppingUseCase {
-  +execute(shoppingList: ShoppingModel): Boolean
-}
-
-class IngredientRepositoryImpl {
-  +getIngredients(): List<IngredientModel>
-  +addIngredient(ingredient: IngredientModel): Boolean
-  +updateIngredient(ingredient: IngredientModel): Boolean
-  +deleteIngredient(id: Int): Boolean
-}
-
-class IngredientsRepositoryModule {
-  +bindIngredientsRepository(ingredientsRepositoryImpl: IngredientRepositoryImpl): IngredientRepository
-}
-
-class IngredientsModule {
-  +provideGetIngredientsUseCase(repository: IngredientRepository): GetIngredientsUseCase
-  +provideAddIngredientUseCase(repository: IngredientRepository): AddIngredientUseCase
-  +provideUpdateIngredientUseCase(repository: IngredientRepository): UpdateIngredientUseCase
-  +provideDeleteIngredientUseCase(repository: IngredientRepository): DeleteIngredientUseCase
-}
-
-class FireBaseModule {
-  +provideFirebaseAuth(): FirebaseAuth
-}
-
-AppRecetas --|> Application : hereda
-MainActivity --> LoginScreenViewModel : usa
-MainActivity --> IngredientsViewModel : usa
-IngredientsScreen --> IngredientsViewModel : usa
-IngredientsViewModel --> AddIngredientUseCase : usa
-IngredientsViewModel --> DeleteIngredientUseCase : usa
-IngredientsViewModel --> GetIngredientsUseCase : usa
-IngredientsViewModel --> UpdateIngredientUseCase : usa
-IngredientsViewModel --> IngredientModel : maneja
-IngredientRepository --> IngredientModel : maneja
-IngredientRepository --> TypeIngredientModel : usa
-IngredientRepository --> UnitTypeModel : usa
-AddIngredientUseCase --> IngredientRepository : usa
-DeleteIngredientUseCase --> IngredientRepository : usa
-GetIngredientsUseCase --> IngredientRepository : usa
-UpdateIngredientUseCase --> IngredientRepository : usa
-LoginScreenViewModel --> UserRepository : usa
-RegisterScreenViewModel --> UserRepository : usa
-UserRepository --> UserModel : maneja
-UserRepository --> IngredientModel : usa
-UserRepository --> RecipeModel : usa
-UserRepository --> ShoppingModel : usa
-UserModel --> IngredientModel : maneja
-UserModel --> RecipeModel : maneja
-UserModel --> ShoppingModel : maneja
-RecipeRepository --> RecipeModel : maneja
-AddRecipeUseCase --> RecipeRepository : usa
-DeleteRecipeUseCase --> RecipeRepository : usa
-GetRecipesUseCase --> RecipeRepository : usa
-UpdateRecipeUseCase --> RecipeRepository : usa
-ShoppingRepository --> ShoppingModel : maneja
-AddShoppingUseCase --> ShoppingRepository : usa
-DeleteShoppingUseCase --> ShoppingRepository : usa
-GetShoppingUseCase --> ShoppingRepository : usa
-UpdateShoppingUseCase --> ShoppingRepository : usa
-IngredientsRepositoryModule --> IngredientRepository : provee
-IngredientsModule --> GetIngredientsUseCase : provee
-IngredientsModule --> AddIngredientUseCase : provee
-IngredientsModule --> UpdateIngredientUseCase : provee
-IngredientsModule --> DeleteIngredientUseCase : provee
-FireBaseModule --> FirebaseAuth : provee
+MyShoppingHistoryViewModel --> GetRecentShoppingHistoryUseCase
+MyShoppingHistoryViewModel --> DeleteShoppingHistoryByIdUseCase
+MyShoppingHistoryViewModel --> GetItemsForHistoryUseCase
 @enduml
