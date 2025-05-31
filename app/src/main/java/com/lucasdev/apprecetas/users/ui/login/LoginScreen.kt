@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.CircularProgressIndicator
@@ -30,6 +31,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -40,7 +42,6 @@ import com.lucasdev.apprecetas.general.ui.appButtons.AppButton
 import com.lucasdev.apprecetas.general.ui.appTextFields.AppTextField
 
 
-//todo cambiar el color de fondo para que sea acorde a la aplicación
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
@@ -52,7 +53,7 @@ fun LoginScreen(
     Box(
         modifier
             .fillMaxSize()
-        .background(Color.Yellow)
+        .background(colorResource(id = R.color.very_light_orange))
     ) {
         Header(Modifier.align(Alignment.TopEnd))
         Body(Modifier.align(Alignment.Center), loginScreenViewModel, onLoginSuccess)
@@ -81,7 +82,7 @@ fun Header(modifier: Modifier) {
         modifier = modifier.clickable { activity.finish() })
 }
 
-//todo si solo voy a permitir cuentas de google puede que no sea necesario manternelo
+
 @Composable
 fun Footer(modifier: Modifier,onNavigateToRegister: () -> Unit) {
     Column(
@@ -92,7 +93,7 @@ fun Footer(modifier: Modifier,onNavigateToRegister: () -> Unit) {
                 .background(Color(0xFFF9F9F9))
                 .height(1.dp)
                 .fillMaxWidth(),
-            color = Color(0xFFF9F9F9)
+            color = colorResource(id = R.color.orange_test)
         )
         Spacer(modifier = Modifier.size(24.dp))
         SingUp(onNavigateToRegister)
@@ -102,7 +103,6 @@ fun Footer(modifier: Modifier,onNavigateToRegister: () -> Unit) {
 
 }
 
-//todo cambiar el color del texto, puede que eliminarlo si no es necesario con el footer
 @Composable
 fun SingUp(onNavigateToRegister: () -> Unit) {
     Row(
@@ -113,14 +113,14 @@ fun SingUp(onNavigateToRegister: () -> Unit) {
     ) {
         Text(
             text = "¿No tienes una cuenta?",
-            color = Color(0xFFB5B5B5),
+            color = Color.Black,
             fontSize = 12.sp
         )
         Text(
             text = "Inscribete.",
             Modifier.padding(horizontal = 8.dp),
             fontSize = 12.sp,
-            color = Color(0xFF4EA8E9),
+            color = Color.Black,
             fontWeight = FontWeight.Bold
         )
     }
@@ -138,7 +138,8 @@ fun Body(
     val isLoginEnable: Boolean by loginScreenViewModel.loginEnable.collectAsState(initial = false)
 
     Column(modifier = modifier) {
-        ImageLogo(Modifier.align(Alignment.CenterHorizontally))
+        ImageLogo(Modifier.align(Alignment.CenterHorizontally),240)
+        NameApp()
         Spacer(modifier = Modifier.size(16.dp))
         Email(email, { loginScreenViewModel.onLoginChanged(email = it, password = password) })
         Spacer(modifier = Modifier.size(4.dp))
@@ -182,7 +183,7 @@ fun SocialLogin() {
 
 
 
-//todo cambiar los colores de los botones para que sea acorde a la aplicacion, dar lógica al botón de login
+
 @Composable
 fun LoginButton(
     loginEnable: Boolean,
@@ -245,7 +246,7 @@ fun Password(password: String, onTextChange: (String) -> Unit) {
         onValueChange = { onTextChange(it) },
         placeholder = "Contraseña",
         keyboardType = KeyboardType.Password,
-        isPassword = true
+        isPassword = true,
     )
 }
 
@@ -261,10 +262,23 @@ fun Email(email: String, onTextChange: (String) -> Unit) {
 
 //todo cambiar el icono por el de la aplicacion y puede que añadir el nombre de esta
 @Composable
-fun ImageLogo(modifier: Modifier) {
+fun ImageLogo(modifier: Modifier,size:Int) {
     Image(
         painter = painterResource(R.drawable.logo_app),
         contentDescription = "Logo",
-        modifier = modifier.size(240.dp)
+        modifier = modifier.size(size.dp)
+    )
+}
+@Composable
+fun NameApp(){
+    Text(
+        text = "Nombre provisional",
+        fontSize = 24.sp,
+        fontWeight = FontWeight.Bold,
+        color = Color.Black,
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentWidth(Alignment.CenterHorizontally)
+            .padding(top = 8.dp, bottom = 16.dp)
     )
 }

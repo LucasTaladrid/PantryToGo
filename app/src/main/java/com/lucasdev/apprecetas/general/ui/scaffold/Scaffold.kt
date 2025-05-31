@@ -4,9 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.ModalDrawerSheet
@@ -74,7 +77,7 @@ fun AppScaffold(
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            ModalDrawerSheet(drawerContainerColor = Color.Red) {
+            ModalDrawerSheet(drawerContainerColor = colorResource(id=R.color.orange)) {
                 MyModalDrawer { route ->
                     coroutineScope.launch {
                         drawerState.close()
@@ -118,7 +121,6 @@ fun AppScaffold(
     }
 }
 
-//todo cambiar colores
 /**
  * A modal navigation drawer displaying a list of navigation items.
  *
@@ -141,21 +143,35 @@ fun MyModalDrawer(
     var selectedRoute by remember { mutableStateOf<String?>(null) }
 
     Column(Modifier.padding(8.dp)) {
-        items.forEach { (route, label) ->
+        items.forEachIndexed { index, (route, label) ->
             val selected = selectedRoute == route
             NavigationDrawerItem(
-                label = { Text(label) },
+                label = {
+                    Text(
+                        text = label,
+                        color = Color.Black
+                    )
+                },
                 selected = selected,
                 onClick = {
                     selectedRoute = route
                     onNavigate(route)
                 },
                 colors = NavigationDrawerItemDefaults.colors(
-                    selectedContainerColor = Color.Red,
-                    unselectedContainerColor = Color.Magenta,
+                    selectedContainerColor = colorResource(id = R.color.orange),
+                    unselectedContainerColor = colorResource(id = R.color.orange),
                     selectedTextColor = Color.White
                 )
             )
+            if (index < items.lastIndex) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Divider(
+                    color = Color.Gray,
+                    thickness = 1.dp,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+            }
         }
     }
 }

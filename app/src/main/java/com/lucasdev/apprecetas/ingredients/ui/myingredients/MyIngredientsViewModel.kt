@@ -159,10 +159,9 @@ class MyIngredientsViewModel @Inject constructor(
         val isAdmin = isAdminUseCase()
 
         val userIngredients = getUserIngredientUseCase()
-
+        val commonIngredients = getCommonIngredientsUseCase()
         val ingredients = if (isAdmin) {
-            val commonIngredients = getCommonIngredientsUseCase()
-            _commonIngredients.value = commonIngredients // Opcional: para mostrarlos aparte
+            _commonIngredients.value = commonIngredients
             userIngredients + commonIngredients
         } else {
             userIngredients

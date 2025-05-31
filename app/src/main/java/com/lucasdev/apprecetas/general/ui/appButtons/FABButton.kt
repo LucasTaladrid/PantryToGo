@@ -10,7 +10,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import com.lucasdev.apprecetas.R
 
-//todo, cambiar el color, añadir funcionalidad, en las recetas, añade recetas, en la de ingredientes añade ingredientes.
 /**
  * Floating Action Button (FAB) with an "add" icon.
  *

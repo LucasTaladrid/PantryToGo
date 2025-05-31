@@ -7,6 +7,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
+import com.lucasdev.apprecetas.R
 
 /**
  * Custom button with configurable colors, width, and enabled state.
@@ -28,9 +30,9 @@ fun AppButton(
     enabled: Boolean = true,
     modifier: Modifier = Modifier,
     fullWidth: Boolean = true,
-    containerColor: Color = Color(0xFFD00E0E),
-    disabledContainerColor: Color = Color(0xFF5B1421),
-    contentColor: Color = Color.White,
+    containerColor: Color = colorResource(id = R.color.orange),
+    disabledContainerColor: Color = colorResource(id=R.color.personal_gray),
+    contentColor: Color = Color.Black,
     disabledContentColor: Color = Color.White
 ) {
     Button(

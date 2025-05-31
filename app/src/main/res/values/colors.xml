@@ -11,6 +11,8 @@
     <color name="orange">#FF8B3E</color>
     <color name="light_orange">#FEB17B</color>
     <color name="very_light_orange">#F3D0BA</color>"
+    <color name="very_very_light_orange">#F7D9C4</color>"
     <color name="orange_test">#F79E68</color>
     <color name="orange_test_two">#F78D68</color>
+    <color name="personal_gray">#919191</color>
 </resources>

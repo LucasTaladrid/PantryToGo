@@ -53,6 +53,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
 import com.lucasdev.apprecetas.general.ui.appButtons.AppButton
 import com.lucasdev.apprecetas.general.ui.appTextFields.AppOutlinedTextField
+import com.lucasdev.apprecetas.general.ui.dialogs.AddIngredientWithQuantityDialog
 import com.lucasdev.apprecetas.general.ui.dropDownSelector.DropdownSelector
 import com.lucasdev.apprecetas.general.ui.scaffold.AppScaffold
 import com.lucasdev.apprecetas.general.ui.textApp.helpText.ShoppingListHelp
@@ -205,7 +206,8 @@ fun ShoppingListScreen(
             }
 
             if (showAddDialog) {
-                AddShoppingListIngredientDialog(
+                AddIngredientWithQuantityDialog(
+                    title = "Añadir ingrediente a la lista",
                     categories = categories.value,
                     availableIngredients = ingredients.value,
                     onDismiss = { showAddDialog = false },

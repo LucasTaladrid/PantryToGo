@@ -57,7 +57,7 @@ fun AppTextField(
             }
         } else null,
         colors = TextFieldDefaults.colors(
-            focusedTextColor = Color(0xFFB2B2B2),
+            focusedTextColor = Color.Black,
             unfocusedTextColor = Color(0xFFB2B2B2),
             cursorColor = Color.Gray,
             focusedIndicatorColor = Color.Transparent,

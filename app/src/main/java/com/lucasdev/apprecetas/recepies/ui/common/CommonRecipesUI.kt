@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -42,9 +43,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.lucasdev.apprecetas.R
 import com.lucasdev.apprecetas.general.ui.appTextFields.AppOutlinedTextField
+import com.lucasdev.apprecetas.general.ui.dialogs.AddIngredientWithQuantityDialog
 import com.lucasdev.apprecetas.general.ui.dropDownSelector.DropdownSelector
 import com.lucasdev.apprecetas.ingredients.domain.model.CategoryModel
 import com.lucasdev.apprecetas.ingredients.domain.model.IngredientModel
@@ -216,7 +220,8 @@ fun RecipeCreateDialog(
     var newQuantity by remember { mutableStateOf("") }
 
     if (showIngredientDialog) {
-        AddIngredientDialog(
+        AddIngredientWithQuantityDialog(
+            title = "Añadir ingrediente a la receta",
             categories = categories,
             availableIngredients = ingredients,
             existingIngredients = recipeIngredients,
@@ -505,3 +510,4 @@ fun AddIngredientDialog(
         }
     )
 }
+
