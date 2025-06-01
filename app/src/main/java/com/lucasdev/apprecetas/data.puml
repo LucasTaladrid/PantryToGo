@@ -1,0 +1,96 @@
+@startuml
+
+class IngredientCategory {
+  - id: String
+  - name: String
+}
+
+class IngredientUnit {
+  - id: String
+  - name: String
+}
+
+class Ingredient {
+  - id: String
+  - name: String
+  - description: String
+  - category: IngredientCategory
+  - unit: IngredientUnit
+}
+
+class RecipeIngredient {
+  - ingredientId: String
+  - name: String
+  - quantity: Number
+  - unit: String
+  - category: String
+}
+
+class Recipe {
+  - id: String
+  - name: String
+  - dateCreated: Date
+  - ingredients: List<RecipeIngredient>
+  - steps: List<String>
+}
+
+class InventoryItem {
+  - ingredientInstanceId: String
+  - name: String
+  - quantity: Number
+  - unit: String
+  - category: String
+}
+
+class ShoppingItem {
+  - itemId: String
+  - name: String
+  - quantity: Number
+  - checked: Boolean
+  - unit: String
+  - category: String
+}
+
+class ShoppingList {
+  - listId: String
+  - date: Date
+  - title: String
+  - items: List<ShoppingItem>
+}
+
+class ShoppingHistory {
+  - historyId: String
+  - date: Date
+  - title: String
+  - items: List<ShoppingItem>
+}
+
+class User {
+  - uid: String
+  - name: String
+  - email: String
+  - admin: Boolean
+  - status: String
+  - ingredients: List<Ingredient>
+  - recipes: List<Recipe>
+  - shoppingList: List<ShoppingItem>
+  - inventory: List<InventoryItem>
+  - favorites: List<Recipe>
+  - pendings: List<Recipe>
+  - shopping_history: List<ShoppingHistory>
+  - shopping_list: List<ShoppingList>
+}
+
+Ingredient --> IngredientCategory
+Ingredient --> IngredientUnit
+Recipe --> RecipeIngredient
+User --> Ingredient
+User --> Recipe
+User --> InventoryItem
+User --> ShoppingItem
+User --> Recipe : favorites
+User --> Recipe : pendings
+User --> ShoppingHistory
+User --> ShoppingList
+
+@enduml

@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.style.TextOverflow
 import com.lucasdev.apprecetas.R
 
 /**
@@ -46,6 +47,6 @@ fun AppButton(
         ),
         modifier = if (fullWidth) modifier.fillMaxWidth() else modifier
     ) {
-        Text(text = text)
+        Text(text = text, maxLines = 1, softWrap = false,overflow = TextOverflow.Clip)
     }
 }

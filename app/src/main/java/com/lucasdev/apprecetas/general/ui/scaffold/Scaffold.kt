@@ -96,8 +96,6 @@ fun AppScaffold(
                     onClickHelp = { showHelpDialog.value = true },
                     onClickDrawer = { coroutineScope.launch { drawerState.apply { if (isClosed) open() else close() } } })
             },
-
-
             snackbarHost = { SnackbarHost(snackbarHostState) },
             bottomBar = { BottomBarNavigation(navController = navController) },
             floatingActionButton = {
@@ -115,8 +113,6 @@ fun AppScaffold(
             ) {
                 content(innerPadding)
             }
-
-
         }
     }
 }

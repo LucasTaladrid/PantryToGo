@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -94,7 +95,7 @@ fun RecipesScreen(
                         )
                     }
                 } else {
-                    LazyColumn(Modifier.fillMaxSize()) {
+                    LazyColumn(Modifier.fillMaxSize().padding(bottom = 80.dp)) {
                         items(recipes) { recipe ->
                             val isFavorite = favorites.any{it.id==recipe.id}
                             val isPending = pending.any{it.id==recipe.id}

@@ -19,6 +19,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -39,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -51,6 +53,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
+import com.lucasdev.apprecetas.R
 import com.lucasdev.apprecetas.general.ui.appButtons.AppButton
 import com.lucasdev.apprecetas.general.ui.appTextFields.AppOutlinedTextField
 import com.lucasdev.apprecetas.general.ui.dialogs.AddIngredientWithQuantityDialog
@@ -189,7 +192,7 @@ fun ShoppingListScreen(
                         },
                         text = "Finalizar Compra",
                         modifier = Modifier
-                            .fillMaxWidth(0.5f)
+                            .fillMaxWidth(0.6f)
                             .padding(16.dp)
                     )
 
@@ -294,7 +297,12 @@ fun ShoppingItemRow(
     ) {
         Checkbox(
             checked = item.checked,
-            onCheckedChange = onCheckedChange
+            onCheckedChange = onCheckedChange,
+            colors = CheckboxDefaults.colors(
+                checkedColor = colorResource(id= R.color.dark_orange),
+                uncheckedColor = Color.Gray,
+                checkmarkColor = Color.Black
+            )
         )
         Spacer(Modifier.width(8.dp))
         Column {

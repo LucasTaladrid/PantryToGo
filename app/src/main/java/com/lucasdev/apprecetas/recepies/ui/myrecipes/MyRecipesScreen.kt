@@ -109,7 +109,7 @@ fun MyRecipesScreen(myRecipesViewModel: MyRecipesScreenViewModel, back: () -> Un
                                     .align(Alignment.TopCenter)
                             )
                         } else {
-                            LazyColumn(Modifier.fillMaxSize()) {
+                            LazyColumn(Modifier.fillMaxSize().padding(bottom = 80.dp)) {
                                 items(recipes) { recipe ->
                                     val isFavorite = favorites.any { it.id == recipe.id }
                                     val isPending = pending.any { it.id == recipe.id }
