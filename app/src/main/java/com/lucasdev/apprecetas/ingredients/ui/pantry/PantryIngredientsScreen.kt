@@ -296,7 +296,7 @@ fun EditPantryIngredientDialog(
                 enabled = isQuantityValid,
                 colors = ButtonColors(
                     containerColor = colorResource(R.color.orange),
-                    contentColor = Color.Black,
+                    contentColor = Color.White,
                     disabledContainerColor = Color.Gray,
                     disabledContentColor = Color.White
                 )

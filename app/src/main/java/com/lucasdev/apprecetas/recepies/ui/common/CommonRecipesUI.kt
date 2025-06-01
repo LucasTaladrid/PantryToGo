@@ -121,7 +121,7 @@ fun RecipeItem(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End
                     ) {
-                        Button(onClick = onMarkAsCooked) {
+                        Button(onClick = onMarkAsCooked, colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.orange),contentColor = Color.White)) {
                             Text("Marcar como cocinada")
                         }
                     }
@@ -245,7 +245,17 @@ fun RecipeCreateDialog(
     if (ingredientToEdit != null) {
         AlertDialog(
             onDismissRequest = { ingredientToEdit = null },
-            title = { Text("Editar cantidad") },
+            title = {
+                Column {
+                    Text("Editar cantidad")
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "${ingredientToEdit?.name} (${ingredientToEdit?.unit?.name})",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.Black
+                    )
+                }
+            },
             text = {
                 OutlinedTextField(
                     value = newQuantity,

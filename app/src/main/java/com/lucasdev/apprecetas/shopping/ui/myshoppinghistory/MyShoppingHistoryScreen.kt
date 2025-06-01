@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -25,6 +27,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -32,10 +35,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.lucasdev.apprecetas.R
 import com.lucasdev.apprecetas.general.ui.textApp.helpText.MyShoppingHistoryHelp
 
 @Composable
-fun MyShoppingHistoryScreen(myShoppingHistoryViewModel: MyShoppingHistoryViewModel, back: () -> Unit) {
+fun MyShoppingHistoryScreen(
+    myShoppingHistoryViewModel: MyShoppingHistoryViewModel,
+    back: () -> Unit
+) {
     val history by myShoppingHistoryViewModel.history.collectAsState()
     val expandedItems by myShoppingHistoryViewModel.expandedItems.collectAsState()
     val historyItems by myShoppingHistoryViewModel.historyItems.collectAsState()
@@ -99,7 +106,17 @@ fun MyShoppingHistoryScreen(myShoppingHistoryViewModel: MyShoppingHistoryViewMod
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Spacer(modifier = Modifier.weight(1f))
-                                        OutlinedButton(onClick = { myShoppingHistoryViewModel.deleteHistoryItem(historyItem.id) }) {
+                                        OutlinedButton(
+                                            onClick = {
+                                                myShoppingHistoryViewModel.deleteHistoryItem(
+                                                    historyItem.id
+                                                )
+                                            },
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = colorResource(id = R.color.orange),
+                                                contentColor = colorResource(id = R.color.white)
+                                            )
+                                        ) {
                                             Text("Eliminar")
                                         }
                                     }

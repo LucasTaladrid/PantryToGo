@@ -235,12 +235,18 @@ fun ConfirmDeleteDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
         title = { Text("Eliminar receta") },
         text = { Text("¿Estás seguro de que quieres eliminar esta receta?") },
         confirmButton = {
-            TextButton(onClick = { onConfirm() }) {
+            TextButton(
+                onClick = { onConfirm() },
+                colors = ButtonDefaults.textButtonColors(contentColor = colorResource(R.color.dark_orange))
+            ) {
                 Text("Sí, eliminar")
             }
         },
         dismissButton = {
-            TextButton(onClick = { onDismiss() }) {
+            TextButton(
+                onClick = { onDismiss() },
+                colors = ButtonDefaults.textButtonColors(contentColor = colorResource(R.color.dark_orange))
+            ) {
                 Text("Cancelar")
             }
         }
