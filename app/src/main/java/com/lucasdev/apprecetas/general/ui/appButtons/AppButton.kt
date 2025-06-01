@@ -32,7 +32,7 @@ fun AppButton(
     fullWidth: Boolean = true,
     containerColor: Color = colorResource(id = R.color.orange),
     disabledContainerColor: Color = colorResource(id=R.color.personal_gray),
-    contentColor: Color = Color.Black,
+    contentColor: Color = Color.White,
     disabledContentColor: Color = Color.White
 ) {
     Button(

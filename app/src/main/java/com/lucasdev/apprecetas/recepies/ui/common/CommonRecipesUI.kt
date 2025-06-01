@@ -87,7 +87,7 @@ fun RecipeItem(
                 Icon(
                     imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                     contentDescription = "Favorito",
-                    tint = if (isFavorite) Color(0xFFE91E63) else LocalContentColor.current
+                    tint = if (isFavorite) colorResource(id = R.color.personal_pink) else LocalContentColor.current
                 )
             }
 
@@ -95,7 +95,7 @@ fun RecipeItem(
                 Icon(
                     imageVector = if (isPending) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
                     contentDescription = "Pendiente",
-                    tint = if (isPending) Color(0xFFFF9800) else LocalContentColor.current
+                    tint = if (isPending) colorResource(id = R.color.dark_orange) else LocalContentColor.current
                 )
             }
 
@@ -256,19 +256,26 @@ fun RecipeCreateDialog(
                 )
             },
             confirmButton = {
-                TextButton(onClick = {
-                    val updated = ingredientToEdit?.copy(quantity = newQuantity.toDoubleOrNull() ?: 0.0)
-                    if (updated != null) {
-                        recipeIngredients.remove(ingredientToEdit)
-                        recipeIngredients.add(updated)
-                    }
-                    ingredientToEdit = null
-                }) {
+                TextButton(
+                    onClick = {
+                        val updated =
+                            ingredientToEdit?.copy(quantity = newQuantity.toDoubleOrNull() ?: 0.0)
+                        if (updated != null) {
+                            recipeIngredients.remove(ingredientToEdit)
+                            recipeIngredients.add(updated)
+                        }
+                        ingredientToEdit = null
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = colorResource(R.color.dark_orange))
+                ) {
                     Text("Guardar")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { ingredientToEdit = null }) {
+                TextButton(
+                    onClick = { ingredientToEdit = null },
+                    colors = ButtonDefaults.textButtonColors(contentColor = colorResource(R.color.dark_orange))
+                ) {
                     Text("Cancelar")
                 }
             }
@@ -279,14 +286,17 @@ fun RecipeCreateDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
             Row {
-                TextButton(onClick = onDismiss) {
+                TextButton(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.textButtonColors(contentColor = colorResource(R.color.dark_orange))
+                ) {
                     Text("Cancelar")
                 }
-                Spacer(Modifier.weight(1f))
                 TextButton(
                     onClick = {
                         onCreateRecipe(recipeName, recipeIngredients.toList(), steps, onDismiss)
                     },
+                    colors = ButtonDefaults.textButtonColors(contentColor = colorResource(R.color.dark_orange)),
                     enabled = recipeName.isNotBlank() && recipeIngredients.isNotEmpty() && steps.isNotBlank() && !isSaving
                 ) {
                     Text(if (isSaving) "Guardando..." else if (initialRecipe != null) "Actualizar receta" else "Crear receta")
@@ -352,7 +362,8 @@ fun RecipeCreateDialog(
 
                 Button(
                     onClick = { showIngredientDialog = true },
-                    modifier = Modifier.align(Alignment.End)
+                    modifier = Modifier.align(Alignment.End),
+                    colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.orange))
                 ) {
                     Text("Añadir ingredientes")
                 }
@@ -464,7 +475,7 @@ fun AddIngredientDialog(
                         modifier = Modifier.padding(top = 4.dp)
                     )
                 }
-                if(!errorMessage.isNullOrEmpty()){
+                if (!errorMessage.isNullOrEmpty()) {
                     Text(
                         text = errorMessage,
                         color = MaterialTheme.colorScheme.error,

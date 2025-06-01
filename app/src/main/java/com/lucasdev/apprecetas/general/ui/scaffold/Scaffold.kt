@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.FabPosition
@@ -77,7 +78,7 @@ fun AppScaffold(
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            ModalDrawerSheet(drawerContainerColor = colorResource(id=R.color.orange)) {
+            ModalDrawerSheet(drawerContainerColor = colorResource(id = R.color.orange)) {
                 MyModalDrawer { route ->
                     coroutineScope.launch {
                         drawerState.close()
@@ -91,8 +92,8 @@ fun AppScaffold(
             topBar = {
                 TopBar(
                     userName = userName,
-                    onClickIcon = {/*todo in the future this will contain search */},
-                    onClickHelp = {showHelpDialog.value = true},
+                    onClickIcon = {/*todo in the future this will contain search */ },
+                    onClickHelp = { showHelpDialog.value = true },
                     onClickDrawer = { coroutineScope.launch { drawerState.apply { if (isClosed) open() else close() } } })
             },
 
@@ -109,12 +110,11 @@ fun AppScaffold(
             ) { innerPadding ->
             Box(
                 modifier = Modifier
-                    .background(colorResource(id = R.color.very_light_orange))
+                    .background(Color.White)
 
             ) {
                 content(innerPadding)
             }
-
 
 
         }
@@ -185,7 +185,10 @@ fun HelpDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
-            TextButton(onClick = onDismiss) {
+            TextButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.textButtonColors(contentColor = colorResource(R.color.dark_orange))
+            ) {
                 Text("Entendido")
             }
         },

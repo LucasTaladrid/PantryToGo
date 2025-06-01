@@ -230,7 +230,7 @@ class MyIngredientsViewModel @Inject constructor(
 
         if (duplicate != null) {
             _duplicateIngredient.value = duplicate
-            _errorMessage.value = "Ingredient already exists"
+            _errorMessage.value = "El ingrediente ya existe"
             return
         }
 

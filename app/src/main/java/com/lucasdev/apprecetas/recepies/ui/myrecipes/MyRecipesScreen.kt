@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
@@ -23,16 +24,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.lucasdev.apprecetas.R
 import com.lucasdev.apprecetas.general.ui.scaffold.AppScaffoldWithoutBottomBar
 import com.lucasdev.apprecetas.general.ui.textApp.helpText.MyRecipesHelp
 import com.lucasdev.apprecetas.recepies.domain.model.RecipeModel
 import com.lucasdev.apprecetas.recepies.ui.common.RecipeCreateDialog
 import com.lucasdev.apprecetas.recepies.ui.common.RecipeItemPress
-
 
 @Composable
 fun MyRecipesScreen(myRecipesViewModel: MyRecipesScreenViewModel, back: () -> Unit) {
@@ -120,7 +122,11 @@ fun MyRecipesScreen(myRecipesViewModel: MyRecipesScreenViewModel, back: () -> Un
                                         },
                                         isFavorite = isFavorite,
                                         isPending = isPending,
-                                        onToggleFavorite = { myRecipesViewModel.toggleFavorite(recipe) },
+                                        onToggleFavorite = {
+                                            myRecipesViewModel.toggleFavorite(
+                                                recipe
+                                            )
+                                        },
                                         onTogglePending = { myRecipesViewModel.togglePending(recipe) },
                                         onLongPress = { myRecipesViewModel.onRecipeLongClick(recipe) }
                                     )
@@ -163,10 +169,10 @@ fun MyRecipesScreen(myRecipesViewModel: MyRecipesScreenViewModel, back: () -> Un
 
                 }
                 if (showDeleteConfirmation && selectedRecipe != null) {
-                   ConfirmDeleteDialog(
-                       onDismiss = { myRecipesViewModel.clearDialogs() },
-                       onConfirm = { myRecipesViewModel.deleteSelectedRecipe() }
-                   )
+                    ConfirmDeleteDialog(
+                        onDismiss = { myRecipesViewModel.clearDialogs() },
+                        onConfirm = { myRecipesViewModel.deleteSelectedRecipe() }
+                    )
                 }
                 if (showEditDialog && selectedRecipe != null) {
                     RecipeCreateDialog(
@@ -195,18 +201,27 @@ fun MyRecipesScreen(myRecipesViewModel: MyRecipesScreenViewModel, back: () -> Un
 }
 
 @Composable
-fun OptionsDialog(onDismiss: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit){
+fun OptionsDialog(onDismiss: () -> Unit, onEdit: () -> Unit, onDelete: () -> Unit) {
     AlertDialog(
         onDismissRequest = { onDismiss() },
         title = { Text("Acciones sobre la receta") },
         text = { Text("¿Qué quieres hacer con esta receta?") },
         confirmButton = {
-            TextButton(onClick = { onEdit() }) {
+            TextButton(
+                onClick = { onEdit() }, colors = ButtonDefaults.textButtonColors(
+                    contentColor = colorResource(
+                        R.color.dark_orange
+                    )
+                )
+            ) {
                 Text("Modificar")
             }
         },
         dismissButton = {
-            TextButton(onClick = { onDelete() }) {
+            TextButton(
+                onClick = { onDelete() },
+                colors = ButtonDefaults.textButtonColors(contentColor = colorResource(R.color.dark_orange))
+            ) {
                 Text("Eliminar")
             }
         }
@@ -216,16 +231,16 @@ fun OptionsDialog(onDismiss: () -> Unit, onEdit: () -> Unit, onDelete: () -> Uni
 @Composable
 fun ConfirmDeleteDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
     AlertDialog(
-        onDismissRequest = {onDismiss() },
+        onDismissRequest = { onDismiss() },
         title = { Text("Eliminar receta") },
         text = { Text("¿Estás seguro de que quieres eliminar esta receta?") },
         confirmButton = {
-            TextButton(onClick = {onConfirm() }) {
+            TextButton(onClick = { onConfirm() }) {
                 Text("Sí, eliminar")
             }
         },
         dismissButton = {
-            TextButton(onClick = {onDismiss() }) {
+            TextButton(onClick = { onDismiss() }) {
                 Text("Cancelar")
             }
         }

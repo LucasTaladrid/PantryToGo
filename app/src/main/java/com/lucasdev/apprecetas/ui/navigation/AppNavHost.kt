@@ -6,7 +6,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import com.lucasdev.apprecetas.ingredients.ui.pantry.IngredientsScreen
+import com.lucasdev.apprecetas.ingredients.ui.pantry.PantryIngredientScreen
 import androidx.navigation.compose.composable
 import com.lucasdev.apprecetas.users.ui.login.LoginScreen
 import com.lucasdev.apprecetas.users.ui.login.LoginScreenViewModel
@@ -81,7 +81,7 @@ fun AppNavHost(navController: NavHostController) {
             val isAdmin by loginViewModel.isAdmin.collectAsState()
             val pantryIngredientsViewModel: PantryIngredientsViewModel = hiltViewModel()
             LaunchedEffect(isAdmin) { pantryIngredientsViewModel.isAdmin = isAdmin }
-            IngredientsScreen(
+            PantryIngredientScreen(
                 pantryIngredientsViewModel = hiltViewModel(),
                 navController = navController
             )

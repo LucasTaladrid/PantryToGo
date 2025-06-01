@@ -53,7 +53,7 @@ fun LoginScreen(
     Box(
         modifier
             .fillMaxSize()
-        .background(colorResource(id = R.color.very_light_orange))
+            .background(Color.White)
     ) {
         Header(Modifier.align(Alignment.TopEnd))
         Body(Modifier.align(Alignment.Center), loginScreenViewModel, onLoginSuccess)
@@ -67,12 +67,11 @@ fun LoginScreen(
                 CircularProgressIndicator(color = Color.Blue)
             }
         }
-        Footer(Modifier.align(Alignment.BottomCenter),onNavigateToRegister)
+        Footer(Modifier.align(Alignment.BottomCenter), onNavigateToRegister)
     }
 
 }
 
-//Add close icon
 @Composable
 fun Header(modifier: Modifier) {
     val activity = LocalActivity.current as Activity
@@ -82,9 +81,8 @@ fun Header(modifier: Modifier) {
         modifier = modifier.clickable { activity.finish() })
 }
 
-
 @Composable
-fun Footer(modifier: Modifier,onNavigateToRegister: () -> Unit) {
+fun Footer(modifier: Modifier, onNavigateToRegister: () -> Unit) {
     Column(
         modifier = modifier.fillMaxWidth()
     ) {
@@ -138,7 +136,7 @@ fun Body(
     val isLoginEnable: Boolean by loginScreenViewModel.loginEnable.collectAsState(initial = false)
 
     Column(modifier = modifier) {
-        ImageLogo(Modifier.align(Alignment.CenterHorizontally),240)
+        ImageLogo(Modifier.align(Alignment.CenterHorizontally), 240)
         NameApp()
         Spacer(modifier = Modifier.size(16.dp))
         Email(email, { loginScreenViewModel.onLoginChanged(email = it, password = password) })
@@ -254,7 +252,7 @@ fun Password(password: String, onTextChange: (String) -> Unit) {
 fun Email(email: String, onTextChange: (String) -> Unit) {
     AppTextField(
         value = email,
-        onValueChange = {onTextChange(it) },
+        onValueChange = { onTextChange(it) },
         placeholder = "Email",
         keyboardType = KeyboardType.Email
     )
@@ -262,17 +260,18 @@ fun Email(email: String, onTextChange: (String) -> Unit) {
 
 //todo cambiar el icono por el de la aplicacion y puede que añadir el nombre de esta
 @Composable
-fun ImageLogo(modifier: Modifier,size:Int) {
+fun ImageLogo(modifier: Modifier, size: Int) {
     Image(
         painter = painterResource(R.drawable.logo_app),
         contentDescription = "Logo",
         modifier = modifier.size(size.dp)
     )
 }
+
 @Composable
-fun NameApp(){
+fun NameApp() {
     Text(
-        text = "Nombre provisional",
+        text = "Pantry to go",
         fontSize = 24.sp,
         fontWeight = FontWeight.Bold,
         color = Color.Black,

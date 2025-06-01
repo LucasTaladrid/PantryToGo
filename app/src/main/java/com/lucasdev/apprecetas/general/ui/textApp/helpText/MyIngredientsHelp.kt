@@ -16,7 +16,7 @@ object MyIngredientsHelp {
             withStyle(style = SpanStyle(fontSize = 16.sp)) {
                 append("Usa el botón ➕ para registrar un nuevo ingrediente. Selecciona la categoría y la unidad de medida correspondiente.\n\n")
                 append("Una vez registrado, podrás añadir ese ingrediente a tu despensa, lista de la compra o recetas.\n\n")
-                append("Si deseas modificar un ingrediente o ver más detalles, mantén pulsado sobre él.\n\n")
+                append("Si deseas modificar un ingrediente o ver más detalles, mantén pulsado sobre él. Ten en cuenta que el nombre no se puede modificar.\n\n")
                 append("Si el nombre del ingrediente se autocompleta, significa que ya existe en la aplicación. Siempre puedes darle un nombre más específico si lo necesitas. Por ejemplo: arroz largo, basmati, bomba, etc.")
             }
         }

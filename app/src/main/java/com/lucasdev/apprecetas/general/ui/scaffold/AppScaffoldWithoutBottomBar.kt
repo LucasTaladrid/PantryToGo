@@ -1,6 +1,10 @@
 package com.lucasdev.apprecetas.general.ui.scaffold
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.HelpOutline
@@ -22,8 +26,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.AnnotatedString
+import com.lucasdev.apprecetas.R
 import com.lucasdev.apprecetas.general.ui.appButtons.FAB
 import kotlinx.coroutines.launch
 
@@ -36,7 +43,6 @@ import kotlinx.coroutines.launch
  * @param content The main screen content as a composable lambda, receives inner padding values.
  * @param onFabClick Optional callback for the floating action button click. If null, FAB is not shown.
  */
-//todo cambiar colores
 @Composable
 fun AppScaffoldWithoutBottomBar(
     title: String,
@@ -52,7 +58,7 @@ fun AppScaffoldWithoutBottomBar(
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            ModalDrawerSheet(drawerContainerColor = Color.Red) {
+            ModalDrawerSheet() {
                 MyModalDrawer {
                     coroutineScope.launch { drawerState.close() }
                 }
@@ -79,6 +85,12 @@ fun AppScaffoldWithoutBottomBar(
             } },
             floatingActionButtonPosition = FabPosition.End,
             content = { innerPadding ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White)
+                        .padding(innerPadding)
+                )
                 content(innerPadding)
             }
         )
@@ -97,8 +109,8 @@ fun TopBarWithBackButton(title: String, onBackClick: () -> Unit, onClickHelp: ((
     TopAppBar(
         title = { Text(title) },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color.Red,
-            titleContentColor = Color.White
+            containerColor = colorResource(id= R.color.dark_orange),
+            titleContentColor = Color.Black
         ),
         navigationIcon = {
             IconButton(onClick = onBackClick) {

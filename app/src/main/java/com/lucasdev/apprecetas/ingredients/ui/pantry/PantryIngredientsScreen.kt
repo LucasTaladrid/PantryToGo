@@ -3,7 +3,6 @@ package com.lucasdev.apprecetas.ingredients.ui.pantry
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -54,17 +53,14 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
 import com.lucasdev.apprecetas.R
 import com.lucasdev.apprecetas.general.ui.dialogs.AddIngredientWithQuantityDialog
-import com.lucasdev.apprecetas.general.ui.dropDownSelector.DropdownSelector
 import com.lucasdev.apprecetas.general.ui.scaffold.AppScaffold
 import com.lucasdev.apprecetas.general.ui.textApp.helpText.PantryIngredientHelp
-import com.lucasdev.apprecetas.ingredients.domain.model.CategoryModel
-import com.lucasdev.apprecetas.ingredients.domain.model.IngredientModel
 import com.lucasdev.apprecetas.ingredients.domain.model.PantryIngredientModel
 
 
 //todo durante espera loading
 @Composable
-fun IngredientsScreen(
+fun PantryIngredientScreen(
     pantryIngredientsViewModel: PantryIngredientsViewModel,
     navController: NavHostController
 ) {
@@ -73,7 +69,7 @@ fun IngredientsScreen(
     val userName = pantryIngredientsViewModel.userName.collectAsState()
     val errorMessage = pantryIngredientsViewModel.errorMessage.collectAsState()
     val categories = pantryIngredientsViewModel.categories.collectAsState()
-    val editingIngredient=pantryIngredientsViewModel.selectedIngredientToEdit.collectAsState()
+    val editingIngredient = pantryIngredientsViewModel.selectedIngredientToEdit.collectAsState()
     val groupedIngredients = pantryIngredientsViewModel.groupedIngredients.collectAsState()
     val loading = pantryIngredientsViewModel.isLoading.collectAsState()
     val context = LocalContext.current
@@ -105,7 +101,7 @@ fun IngredientsScreen(
 
     AppScaffold(
         userName = userName.value,
-        helpText =  PantryIngredientHelp.pantryHelp,
+        helpText = PantryIngredientHelp.pantryHelp,
         onFabClick = {
             showDialog = true
         },
@@ -129,7 +125,7 @@ fun IngredientsScreen(
                         text = PantryIngredientHelp.pantryHelp,
                         modifier = Modifier
                             .padding(16.dp)
-                            .fillMaxWidth(),
+                            .fillMaxSize(),
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Start
                     )
@@ -158,7 +154,9 @@ fun IngredientsScreen(
                                         ItemIngredient(
                                             ingredient = ingredient,
                                             onLongPress = {
-                                                pantryIngredientsViewModel.setSelectedIngredientToEdit(it)
+                                                pantryIngredientsViewModel.setSelectedIngredientToEdit(
+                                                    it
+                                                )
                                                 showEditDialog = true
                                             },
                                             modifier = Modifier.weight(1f)
@@ -180,7 +178,10 @@ fun IngredientsScreen(
                         onDismiss = { showDialog = false },
                         errorMessage = errorMessage.value,
                         onConfirm = { ingredient, quantity ->
-                            pantryIngredientsViewModel.addOrUpdateIngredientInPantry(ingredient, quantity)
+                            pantryIngredientsViewModel.addOrUpdateIngredientInPantry(
+                                ingredient,
+                                quantity
+                            )
                             showDialog = false
                         }
                     )
@@ -202,16 +203,16 @@ fun IngredientsScreen(
                         }
                     )
                 }
-               if (showDeleteDialog && editingIngredient.value != null) {
-                   ConfirmDeleteDialog(
-                       ingredient = editingIngredient.value!!,
-                       onConfirm = {
-                           pantryIngredientsViewModel.confirmDeleteSelectedIngredientInPantry()
-                           showDeleteDialog = false
-                       },
-                       onDismiss = { showDeleteDialog = false }
-                   )
-               }
+                if (showDeleteDialog && editingIngredient.value != null) {
+                    ConfirmDeleteDialog(
+                        ingredient = editingIngredient.value!!,
+                        onConfirm = {
+                            pantryIngredientsViewModel.confirmDeleteSelectedIngredientInPantry()
+                            showDeleteDialog = false
+                        },
+                        onDismiss = { showDeleteDialog = false }
+                    )
+                }
             }
         }
     )
@@ -230,7 +231,7 @@ fun ItemIngredient(
             .padding(8.dp)
             .border(1.dp, Color.Black, RoundedCornerShape(8.dp))
             .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.background)
+            .background(Color.White)
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { onTap() },
@@ -264,6 +265,7 @@ fun EditPantryIngredientDialog(
     onSave: (PantryIngredientModel) -> Unit
 ) {
     var quantity by remember { mutableStateOf(ingredient.quantity.toString()) }
+    val isQuantityValid = quantity.toDoubleOrNull() != null
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -284,22 +286,37 @@ fun EditPantryIngredientDialog(
             }
         },
         confirmButton = {
-            Button(onClick = {
-                val updated = ingredient.copy(
-                    quantity = quantity.toDoubleOrNull() ?: ingredient.quantity
+            Button(
+                onClick = {
+                    val updated = ingredient.copy(
+                        quantity = quantity.toDoubleOrNull() ?: ingredient.quantity
+                    )
+                    onSave(updated)
+                },
+                enabled = isQuantityValid,
+                colors = ButtonColors(
+                    containerColor = colorResource(R.color.orange),
+                    contentColor = Color.Black,
+                    disabledContainerColor = Color.Gray,
+                    disabledContentColor = Color.White
                 )
-                onSave(updated)
-            }) {
+            ) {
                 Text("Confirmar")
             }
         },
         dismissButton = {
             Row {
-                TextButton(onClick = onDismiss) {
+                TextButton(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.textButtonColors(contentColor = colorResource(R.color.dark_orange))
+                ) {
                     Text("Cancelar")
                 }
                 Spacer(Modifier.width(8.dp))
-                TextButton(onClick = onDelete) {
+                TextButton(
+                    onClick = onDelete,
+                    colors = ButtonDefaults.textButtonColors(contentColor = colorResource(R.color.dark_orange))
+                ) {
                     Text("Borrar")
                 }
             }
@@ -325,10 +342,16 @@ fun ConfirmDeleteDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onConfirm) { Text("Borrar") }
+            TextButton(
+                onClick = onConfirm,
+                colors = ButtonDefaults.textButtonColors(contentColor = colorResource(R.color.dark_orange))
+            ) { Text("Borrar") }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            TextButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.textButtonColors(contentColor = colorResource(R.color.dark_orange))
+            ) { Text("Cancelar") }
         }
     )
 }

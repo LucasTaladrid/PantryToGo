@@ -280,37 +280,45 @@ class PantryIngredientsViewModel @Inject constructor(
      */
     fun addOrUpdateIngredientInPantry(ingredient: IngredientModel, quantity: Double) {
         viewModelScope.launch {
-            val existingIngredient = getUserPantryIngredientByIngredientIdUseCase(ingredient.id)
+            _isLoading.value = true
 
-            if (existingIngredient != null) {
-                val updatedIngredient = existingIngredient.copy(
-                    quantity = existingIngredient.quantity + quantity
+            try {
+                val existingIngredient = getUserPantryIngredientByIngredientIdUseCase(ingredient.id)
 
-                )
-                _snackbarMessage.emit("Ingrediente actualizado")
-                val success = updateUserPantryIngredientUseCase(updatedIngredient)
-                if (success) {
-                    _pantryIngredients.value = _pantryIngredients.value.map {
-                        if (it.id == updatedIngredient.id) updatedIngredient else it
+                if (existingIngredient != null) {
+                    val updatedIngredient = existingIngredient.copy(
+                        quantity = existingIngredient.quantity + quantity
+                    )
+                    _snackbarMessage.emit("Ingrediente actualizado")
+                    val success = updateUserPantryIngredientUseCase(updatedIngredient)
+                    if (success) {
+                        _pantryIngredients.value = _pantryIngredients.value.map {
+                            if (it.id == updatedIngredient.id) updatedIngredient else it
+                        }
+                    } else {
+                        Log.e("PantryIngredientsViewModel", "Failed to update existing ingredient")
                     }
                 } else {
-                    Log.e("PantryIngredientsViewModel", "Failed to update existing ingredient")
-                }
-            } else {
-                val newIngredient = PantryIngredientModel(
-                    ingredientId = ingredient.id,
-                    name = ingredient.name,
-                    category = ingredient.category,
-                    unit = ingredient.unit,
-                    quantity = quantity
-                )
-                _snackbarMessage.emit("Ingrediente añadido")
+                    val newIngredient = PantryIngredientModel(
+                        ingredientId = ingredient.id,
+                        name = ingredient.name,
+                        category = ingredient.category,
+                        unit = ingredient.unit,
+                        quantity = quantity
+                    )
+                    _snackbarMessage.emit("Ingrediente añadido")
 
-                val addedIngredient = addUserPantryIngredientUseCase(newIngredient)
-                _pantryIngredients.value = _pantryIngredients.value + addedIngredient
+                    val addedIngredient = addUserPantryIngredientUseCase(newIngredient)
+                    _pantryIngredients.value = _pantryIngredients.value + addedIngredient
+                }
+            } catch (e: Exception) {
+                Log.e("PantryIngredientsViewModel", "Error al añadir/actualizar ingrediente", e)
+            } finally {
+                _isLoading.value = false
             }
         }
     }
+
 
     /**
      * Updates an existing pantry ingredient.

@@ -33,8 +33,7 @@ fun LogoutScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding()
-                    .background(colorResource(id = R.color.very_light_orange)),
+                    .padding(),
                 contentAlignment = Alignment.Center
             ) {
                 AppButton(

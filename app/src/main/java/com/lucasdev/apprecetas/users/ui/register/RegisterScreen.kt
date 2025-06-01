@@ -61,7 +61,7 @@ fun RegisterScreen(
     Box(
         modifier
             .fillMaxSize()
-            .background(colorResource(id = R.color.very_light_orange))
+            .background(Color.White)
     ) {
         val scrollState = rememberScrollState()
         Column(
