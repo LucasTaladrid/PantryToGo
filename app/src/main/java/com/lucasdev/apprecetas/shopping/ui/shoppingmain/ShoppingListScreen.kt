@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -188,7 +189,9 @@ fun ShoppingListScreen(
                     }
                     AppButton(
                         onClick = {
-                            shoppingListViewModel.moveCheckedItemsToPantry(pantryIngredientsViewModel)
+                            shoppingListViewModel.moveCheckedItemsToPantry(
+                                pantryIngredientsViewModel
+                            )
                         },
                         text = "Finalizar Compra",
                         modifier = Modifier
@@ -233,7 +236,7 @@ fun ShoppingListScreen(
                         TextButton(onClick = {
                             showEditDeleteChoiceDialog = false
                             showEditDialog = true
-                        }) {
+                        },colors = ButtonDefaults.textButtonColors(contentColor = colorResource(R.color.dark_orange))) {
                             Text("Modificar")
                         }
                     },
@@ -241,7 +244,7 @@ fun ShoppingListScreen(
                         TextButton(onClick = {
                             showEditDeleteChoiceDialog = false
                             showDeleteConfirmDialog = true
-                        }) {
+                        },colors = ButtonDefaults.textButtonColors(contentColor = colorResource(R.color.dark_orange))) {
                             Text("Eliminar")
                         }
                     }
@@ -299,7 +302,7 @@ fun ShoppingItemRow(
             checked = item.checked,
             onCheckedChange = onCheckedChange,
             colors = CheckboxDefaults.colors(
-                checkedColor = colorResource(id= R.color.dark_orange),
+                checkedColor = colorResource(id = R.color.dark_orange),
                 uncheckedColor = Color.Gray,
                 checkmarkColor = Color.Black
             )
@@ -454,31 +457,36 @@ fun EditShoppingItemDialog(
             }
         },
         confirmButton = {
-            Button (
+            Button(
 
                 onClick = {
                     val updated = item.copy(
                         quantity = quantity.toDoubleOrNull() ?: item.quantity
                     )
                     onSave(updated)
-                }
-            ){
+                },
+                colors = ButtonDefaults.textButtonColors(contentColor = colorResource(R.color.dark_orange))
+            ) {
                 Text("Confirmar")
             }
         },
         dismissButton = {
             Row {
-                TextButton(onClick = onDismiss) {
+                TextButton(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.textButtonColors(contentColor = colorResource(R.color.dark_orange))
+                ) {
                     Text("Cancelar")
                 }
                 Spacer(Modifier.width(8.dp))
-                TextButton(onClick = onRequestDelete) {
+                TextButton(onClick = onRequestDelete,colors = ButtonDefaults.textButtonColors(contentColor = colorResource(R.color.dark_orange))) {
                     Text("Borrar")
                 }
             }
         }
     )
 }
+
 @Composable
 fun ConfirmDeleteDialog(
     ingredient: ShoppingIngredientModel,
@@ -497,10 +505,10 @@ fun ConfirmDeleteDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onConfirm) { Text("Borrar") }
+            TextButton(onClick = onConfirm,colors = ButtonDefaults.textButtonColors(contentColor = colorResource(R.color.dark_orange))) { Text("Borrar") }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            TextButton(onClick = onDismiss,colors = ButtonDefaults.textButtonColors(contentColor = colorResource(R.color.dark_orange))) { Text("Cancelar") }
         }
     )
 }

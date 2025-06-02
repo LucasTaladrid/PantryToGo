@@ -85,4 +85,18 @@ class GetItemsForHistoryUseCase @Inject constructor(
     }
 }
 
+class CreateInitialShoppingListUseCase @Inject constructor(
+    private val addShoppingListUseCase: AddShoppingListUseCase,
+    private val getShoppingListsUseCase: GetShoppingListsUseCase
+) {
+    suspend operator fun invoke() {
+        val lists = getShoppingListsUseCase()
+        if (lists.isEmpty()) {
+            val newList = ShoppingListModel(title = "Lista activa")
+            addShoppingListUseCase(newList)
+        }
+    }
+}
+
+
 

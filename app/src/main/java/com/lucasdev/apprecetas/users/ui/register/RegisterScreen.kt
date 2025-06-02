@@ -173,7 +173,7 @@ fun PasswordRegister(password: String, updateFields: (String) -> Unit) {
     AppTextField(
         value = password,
         onValueChange = { updateFields(it) },
-        placeholder = "Contraseña*",
+        placeholder = "Contraseña*(Mínimo 7 caracteres)",
         modifier = Modifier.fillMaxWidth(),
         isPassword = true
     )

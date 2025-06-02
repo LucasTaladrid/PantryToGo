@@ -2,6 +2,8 @@ package com.lucasdev.apprecetas.recepies.domain.usecase
 
 import com.lucasdev.apprecetas.recepies.domain.model.RecipeModel
 import com.lucasdev.apprecetas.recepies.domain.repository.RecipeRepository
+import com.lucasdev.apprecetas.shopping.domain.usecase.AddShoppingListUseCase
+import com.lucasdev.apprecetas.shopping.domain.usecase.GetShoppingListsUseCase
 import javax.inject.Inject
 
 /**
@@ -71,7 +73,9 @@ class RemoveRecipeFromFavoritesUseCase @Inject constructor(
  * Use case for adding a recipe to the pending list.
  */
 class AddRecipeToPendingUseCase @Inject constructor(
-    private val repository: RecipeRepository
+    private val repository: RecipeRepository,
+    private val getShoppingListsUseCase: GetShoppingListsUseCase,
+    private val addShoppingListUseCase: AddShoppingListUseCase,
 ) {
     /**
      * Invokes the use case to add a recipe to the pending list.

@@ -105,7 +105,7 @@ fun MyIngredientsScreen(myIngredientsViewModel: MyIngredientsViewModel, back: ()
                                 Text(
                                     text = section.category,
                                     style = MaterialTheme.typography.titleMedium,
-                                    modifier = Modifier.padding()
+                                    modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 4.dp)
                                 )
                             }
                         }
@@ -113,7 +113,7 @@ fun MyIngredientsScreen(myIngredientsViewModel: MyIngredientsViewModel, back: ()
                             Row(
                                 Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                                    .padding(horizontal = 32.dp, vertical = 4.dp)
                                     .combinedClickable(
                                         onClick = {},
                                         onLongClick = {
@@ -185,7 +185,7 @@ fun MyIngredientsScreen(myIngredientsViewModel: MyIngredientsViewModel, back: ()
         AlertDialog(
             onDismissRequest = { myIngredientsViewModel.hideDialog() },
             title = { Text("Opciones") },
-            text = { Text("¿Qué quieres hacer con  el ingrediente:?\n${selectedIngredient!!.name}") },
+            text = { Text("¿Qué quieres hacer con el ingrediente?\n${selectedIngredient!!.name}") },
             confirmButton = {
                 TextButton(
                     onClick =  {  myIngredientsViewModel.showEditDialog()},

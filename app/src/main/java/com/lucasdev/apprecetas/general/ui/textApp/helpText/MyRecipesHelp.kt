@@ -16,7 +16,7 @@ object MyRecipesHelp {
         withStyle(style = SpanStyle(fontSize = 16.sp)) {
             append("Si aún no tienes recetas, pulsa el botón ➕.\n\n")
             append("Podrás darle un nombre a la receta y escribir los diferentes pasos a seguir. Cuando hagas un salto de línea, " +
-                    "la aplicación entiende que es otro paso más, ya que luego los numera.\n Por último, puedes añadir los ingredientes y cantidades " +
+                    "la aplicación entiende que es otro paso más, ya que luego los enumera.\n Por último, puedes añadir los ingredientes y cantidades " +
                     "que hacen falta para prepararla. Recuerda que si no encuentras los ingredientes que te hacen falta, siempre puedes añadirlos en \"Mis ingredientes\".\n\n")
             append("¿Vas a hacer algo rico?")
         }

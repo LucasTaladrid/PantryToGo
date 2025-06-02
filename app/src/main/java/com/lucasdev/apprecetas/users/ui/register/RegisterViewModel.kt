@@ -3,6 +3,7 @@ package com.lucasdev.apprecetas.users.ui.register
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lucasdev.apprecetas.shopping.domain.usecase.CreateInitialShoppingListUseCase
 import com.lucasdev.apprecetas.users.domain.usecase.RegisterUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,7 +13,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
-    private val registerUserUseCase: RegisterUserUseCase
+    private val registerUserUseCase: RegisterUserUseCase,
+    private val createInitialShoppingListUseCase: CreateInitialShoppingListUseCase
+
 ) : ViewModel() {
 
     private val _name = MutableStateFlow("")
@@ -53,7 +56,7 @@ class RegisterViewModel @Inject constructor(
     private fun validateInputs(name: String, email: String, password: String, confirmPassword: String): Boolean {
         return name.isNotBlank()
                 && Patterns.EMAIL_ADDRESS.matcher(email).matches()
-                && password.length >= 6
+                && password.length >= 7
                 && password == confirmPassword
     }
 
@@ -66,6 +69,7 @@ class RegisterViewModel @Inject constructor(
                     email = email.value,
                     password = password.value
                 )
+                createInitialShoppingListUseCase()
                 _isLoading.value = false
                 _showSuccessDialog.value = true
             } catch (e: Exception) {

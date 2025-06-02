@@ -187,7 +187,6 @@ fun MyRecipesScreen(myRecipesViewModel: MyRecipesScreenViewModel, back: () -> Un
                             myRecipesViewModel.onNameChange(name)
                             ingredients.forEach { myRecipesViewModel.addOrUpdateIngredient(it) }
                             myRecipesViewModel.onStepsChange(steps)
-
                             myRecipesViewModel.updateRecipe(onSuccess)
                         },
                         onDismiss = {

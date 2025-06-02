@@ -283,10 +283,13 @@ class MyRecipesScreenViewModel @Inject constructor(
      * Adds or updates an ingredient in the current recipe.
      */
     fun addOrUpdateIngredient(item: PantryIngredientModel) {
-        val idx = _recipeIngredients.indexOfFirst { it.ingredientId == item.ingredientId }
-        if (idx >= 0) {
-            val existing = _recipeIngredients[idx]
-            _recipeIngredients[idx] = existing.copy(quantity = existing.quantity + item.quantity)
+        val existingIndex = _recipeIngredients.indexOfFirst { it.ingredientId == item.ingredientId }
+        if (existingIndex >= 0) {
+            _recipeIngredients[existingIndex] = item.copy(
+                quantity = item.quantity
+            ).also {
+                _recipeIngredients[existingIndex] = it.copy()
+            }
         } else {
             _recipeIngredients += item
         }
@@ -408,7 +411,6 @@ class MyRecipesScreenViewModel @Inject constructor(
             ingredients = recipeIngredients,
             steps = steps.lines().filter { it.isNotBlank() }
         )
-
         viewModelScope.launch {
             _isSaving.value = true
             _errorMessage.value = null

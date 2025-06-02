@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.firestore.firestore
 import com.lucasdev.apprecetas.users.domain.usecase.IsAdminUseCase
 import com.lucasdev.apprecetas.users.domain.usecase.LoginUserUseCase
@@ -51,7 +53,6 @@ class LoginScreenViewModel @Inject constructor(
             _isLoading.value = true
             val result = loginUserUseCase(email, password)
             if (result.isSuccess) {
-                // Si login correcto, verificar si es admin
                 val isAdminResult = runCatching { isAdminUseCase() }
                 if (isAdminResult.isSuccess) {
                     _isAdmin.value = isAdminResult.getOrDefault(false)
@@ -63,8 +64,14 @@ class LoginScreenViewModel @Inject constructor(
                 }
             } else {
                 _isLoading.value = false
-                onError(result.exceptionOrNull()?.message ?: "Error al iniciar sesión")
+                val exception = result.exceptionOrNull()
+                val errorMessage = when (exception) {
+                    is FirebaseAuthInvalidCredentialsException -> "El correo electrónico o la contraseña son incorrectos"
+                    else -> exception?.localizedMessage ?: "Error al iniciar sesión"
+                }
+                onError(errorMessage)
             }
+
         }
     }
 

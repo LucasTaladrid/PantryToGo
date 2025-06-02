@@ -17,6 +17,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.lucasdev.apprecetas.R
 import com.lucasdev.apprecetas.general.ui.appButtons.AppButton
 import com.lucasdev.apprecetas.general.ui.scaffold.AppScaffoldWithoutBottomBar
+import com.lucasdev.apprecetas.general.ui.textApp.helpText.LogoutHelp
 import kotlinx.coroutines.launch
 
 @Composable
@@ -31,6 +32,7 @@ fun LogoutScreen(
 
     AppScaffoldWithoutBottomBar(
         title = "Ajustes",
+        helpText =LogoutHelp.logoutHelp,
         onBackClick = onBackClick,
         content = { padding ->
             Box(

@@ -29,7 +29,7 @@ fun TopBar(
 ) {
     TopAppBar(
         modifier = Modifier.statusBarsPadding(),
-        title = { Text("Hola $userName") },
+        title = { Text("Hola, $userName") },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = colorResource(id=R.color.dark_orange),
             titleContentColor = Color.Black
