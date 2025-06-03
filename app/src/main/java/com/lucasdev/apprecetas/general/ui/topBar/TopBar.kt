@@ -18,7 +18,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import com.lucasdev.apprecetas.R
 
-//todo Cambiar colors, añadir dialogo de ayuda para mostar el tutorial
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar(

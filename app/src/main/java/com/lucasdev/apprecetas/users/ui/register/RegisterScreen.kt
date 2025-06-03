@@ -30,7 +30,7 @@ import com.lucasdev.apprecetas.general.ui.appTextFields.AppTextField
 import com.lucasdev.apprecetas.users.ui.login.ImageLogo
 import com.lucasdev.apprecetas.users.ui.login.NameApp
 
-//todo cambiar colores y fondo
+
 @Composable
 fun RegisterScreen(
     modifier: Modifier = Modifier,

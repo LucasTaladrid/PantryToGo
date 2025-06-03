@@ -52,7 +52,6 @@ import kotlinx.coroutines.launch
  * @param onFabClick Optional callback invoked when the floating action button is clicked.
  * @param navController NavHostController to handle navigation between screens.
  */
-//todo cambiar colores
 @Composable
 fun AppScaffold(
     userName: String,

@@ -11,7 +11,7 @@ object MyPendingRecipesHelp {
     val myPendingRecipesHelp: AnnotatedString
         get() = buildAnnotatedString {
             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, fontSize = 18.sp)) {
-                append("¡Aquí puedes ver tus recetas pendientes.!\n\n")
+                append("¡Aquí puedes ver tus recetas pendientes!\n\n")
             }
             withStyle(style = SpanStyle(fontSize = 16.sp)) {
                 append("Si aún no tienes recetas marcadas, dirígete a la pantalla de recetas y selecciona las que quieras añadir.\n\n")

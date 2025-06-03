@@ -57,8 +57,6 @@ import com.lucasdev.apprecetas.general.ui.scaffold.AppScaffold
 import com.lucasdev.apprecetas.general.ui.textApp.helpText.PantryIngredientHelp
 import com.lucasdev.apprecetas.ingredients.domain.model.PantryIngredientModel
 
-
-//todo durante espera loading
 @Composable
 fun PantryIngredientScreen(
     pantryIngredientsViewModel: PantryIngredientsViewModel,

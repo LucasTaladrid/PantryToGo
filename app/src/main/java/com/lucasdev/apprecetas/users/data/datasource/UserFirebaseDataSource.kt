@@ -21,9 +21,6 @@ class UserFirebaseDataSource @Inject constructor(
         }
     }
 
-
-
-
     suspend fun isAdmin(): Boolean {
         val uid = auth.currentUser?.uid ?: throw Exception("Usuario no autenticado")
         val document = firestore.collection("users").document(uid).get().await()
