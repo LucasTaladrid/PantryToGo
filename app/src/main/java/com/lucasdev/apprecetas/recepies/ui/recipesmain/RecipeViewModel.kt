@@ -28,6 +28,7 @@ import com.lucasdev.apprecetas.recepies.domain.usecase.GetCommonRecipesUseCase
 import com.lucasdev.apprecetas.recepies.domain.usecase.RemoveRecipeFromFavoritesUseCase
 import com.lucasdev.apprecetas.recepies.domain.usecase.RemoveRecipeFromPendingUseCase
 import com.lucasdev.apprecetas.shopping.domain.usecase.GetShoppingListsUseCase
+import com.lucasdev.apprecetas.users.domain.usecase.IsAdminUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -70,12 +71,17 @@ class RecipeViewModel @Inject constructor(
     private val removeFromPendingUseCase: RemoveRecipeFromPendingUseCase,
     private val getFavoriteRecipesUseCase: GetFavoritesRecipesUseCase,
     private val getPendingRecipesUseCase: GetPendingRecipesUseCase,
-    private val getShoppingListsUseCase: GetShoppingListsUseCase
+    private val getShoppingListsUseCase: GetShoppingListsUseCase,
+    private val isAdminUseCase: IsAdminUseCase
 ) : ViewModel() {
 
     /** User's display name */
     private val _userName = MutableStateFlow("")
     val userName: StateFlow<String> = _userName
+
+    /** Flag indicating if the user is an admin */
+    private val _isAdmin = MutableStateFlow(false)
+    val isAdmin: StateFlow<Boolean> = _isAdmin
 
     /** List of ingredient categories */
     private val _categories = MutableStateFlow<List<CategoryModel>>(emptyList())
@@ -135,6 +141,10 @@ class RecipeViewModel @Inject constructor(
     private val _snackbarMessage =MutableStateFlow<String>("")
     val snackbarMessage :StateFlow<String> = _snackbarMessage
 
+    /** Flag indicating if a recipe save operation is in progress */
+    private val _isTogglingPending = MutableStateFlow(false)
+    val isTogglingPending: StateFlow<Boolean> = _isTogglingPending
+
 
     init {
         viewModelScope.launch {
@@ -144,6 +154,7 @@ class RecipeViewModel @Inject constructor(
             loadRecipes()
             loadFavoriteRecipes()
             loadPendingRecipes()
+            isAdmin()
         }
     }
 
@@ -247,6 +258,11 @@ class RecipeViewModel @Inject constructor(
     private fun isFavorite(recipe: RecipeModel): Boolean {
         return _favoriteRecipes.value.any { it.id == recipe.id }
     }
+    private fun isAdmin(){
+        viewModelScope.launch {
+            _isAdmin.value = isAdminUseCase()
+        }
+    }
 
     /**
      * Checks if a recipe is marked as pending.
@@ -285,19 +301,28 @@ class RecipeViewModel @Inject constructor(
      */
     fun togglePending(recipe: RecipeModel) {
         viewModelScope.launch {
-            val shoppingLists = getShoppingListsUseCase()
-            val activeShoppingList = shoppingLists.firstOrNull()
-            if (isPending(recipe) && activeShoppingList!=null) {
-                removeFromPendingUseCase(recipe,activeShoppingList.id)
-                _snackbarMessage.emit("Receta quitada de pendientes")
-            } else {
-                if(activeShoppingList!=null)
-                    addToPendingUseCase(recipe,activeShoppingList.id)
-                _snackbarMessage.emit("Receta añadida a pendientes")
+            if(_isTogglingPending.value) return@launch
+            _isTogglingPending.value = true
+            try{
+                val shoppingLists = getShoppingListsUseCase()
+                val activeShoppingList = shoppingLists.firstOrNull()
+                if (isPending(recipe) && activeShoppingList!=null) {
+                    removeFromPendingUseCase(recipe,activeShoppingList.id)
+                    _snackbarMessage.emit("Receta eliminada de pendientes")
+                } else {
+                    if(activeShoppingList!=null)
+                        addToPendingUseCase(recipe,activeShoppingList.id)
+                    _snackbarMessage.emit("Receta añadida a pendientes")
+                }
+                loadPendingRecipes()
+            }finally {
+                _isTogglingPending.value = false
             }
-            loadPendingRecipes()
+
         }
     }
+
+
 
     /**
      * Fetches the current user's display name from Firestore and updates the state.

@@ -1,6 +1,7 @@
 package com.lucasdev.apprecetas.recepies.ui.myrecipes
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -26,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -50,6 +52,9 @@ fun MyRecipesScreen(myRecipesViewModel: MyRecipesScreenViewModel, back: () -> Un
     val showEditDialog by myRecipesViewModel.showEditDialog.collectAsState()
     val showDeleteConfirmation by myRecipesViewModel.showDeleteConfirmation.collectAsState()
     val selectedRecipe by myRecipesViewModel.selectedRecipe.collectAsState()
+    val isTogglingPending by myRecipesViewModel.isTogglingPending.collectAsState()
+
+
     val context = LocalContext.current
 
     var expandedId by remember { mutableStateOf<String?>(null) }
@@ -193,6 +198,17 @@ fun MyRecipesScreen(myRecipesViewModel: MyRecipesScreenViewModel, back: () -> Un
                             myRecipesViewModel.clearDialogs()
                         }
                     )
+                }
+                if (isTogglingPending) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.3f))
+                            .zIndex(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
             }
         }

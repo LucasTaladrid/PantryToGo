@@ -64,6 +64,10 @@ class MyPendingRecipesViewModel @Inject constructor(
     private val _snackbarMessage =MutableStateFlow<String>("")
     val snackbarMessage :StateFlow<String> = _snackbarMessage
 
+    /** Flag indicating if a recipe save operation is in progress */
+    private val _isTogglingPending = MutableStateFlow(false)
+    val isTogglingPending: StateFlow<Boolean> = _isTogglingPending
+
 
     init {
         viewModelScope.launch {
@@ -154,23 +158,32 @@ class MyPendingRecipesViewModel @Inject constructor(
     }
 
     /**
-     * Toggles a recipe's pending status. Adds or removes it from the current active shopping list.
-     * @param recipe The recipe to toggle.
+     * Toggles the pending status of a recipe.
+     * Adds to pending if not pending; removes otherwise.
+     *
+     * @param recipe Recipe to toggle pending status.
      */
     fun togglePending(recipe: RecipeModel) {
         viewModelScope.launch {
-            val shoppingLists = getShoppingListsUseCase()
-            val activeShoppingList = shoppingLists.firstOrNull()
-            if (isPending(recipe) && activeShoppingList != null) {
-                removeFromPendingUseCase(recipe, activeShoppingList.id)
-                _snackbarMessage.emit("Receta eliminada de la lista de pendientes")
-            } else {
-                if (activeShoppingList != null)
-                    addToPendingUseCase(recipe, activeShoppingList.id)
-                _snackbarMessage.emit("Receta añadida a la lista de pendientes")
+            if(_isTogglingPending.value) return@launch
+            _isTogglingPending.value = true
+            try{
+                val shoppingLists = getShoppingListsUseCase()
+                val activeShoppingList = shoppingLists.firstOrNull()
+                if (isPending(recipe) && activeShoppingList!=null) {
+                    removeFromPendingUseCase(recipe,activeShoppingList.id)
+                    _snackbarMessage.emit("Receta eliminada de pendientes")
+                } else {
+                    if(activeShoppingList!=null)
+                        addToPendingUseCase(recipe,activeShoppingList.id)
+                    _snackbarMessage.emit("Receta añadida a pendientes")
+                }
+
+            }finally {
+                _isTogglingPending.value = false
+                refresh()
             }
-            loadPendingRecipes()
-            refresh()
+
         }
     }
 

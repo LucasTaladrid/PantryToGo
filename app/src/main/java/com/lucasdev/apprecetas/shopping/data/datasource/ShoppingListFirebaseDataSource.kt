@@ -14,6 +14,8 @@ import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.Date
 import javax.inject.Inject
+import kotlin.math.pow
+import kotlin.math.round
 
 /**
  * Firebase data source for shopping lists.
@@ -21,15 +23,31 @@ import javax.inject.Inject
 class ShoppingListFirebaseDataSource @Inject constructor() {
     private val db = Firebase.firestore
     private val uid = Firebase.auth.currentUser?.uid ?: "anon"
+    private val MIN_QUANTITY = 0.00001
+    private val unitToDecimals = mapOf(
+        "unidad" to 4,
+        "kg" to 4,
+        "L" to 4
+    )
+
+    private fun roundTo(value: Double, decimals: Int): Double {
+        val factor = 10.0.pow(decimals)
+        return round(value * factor) / factor
+    }
+
+    private fun getDecimalsForUnit(unit: String?): Int {
+        return unit?.let { unitToDecimals[it] } ?: 2
+    }
 
     /**
      * Returns a reference to the shopping list items collection for a given list ID.
      * @param listId The ID of the shopping list.
      * @return A reference to the items collection.
      */
-    private fun shoppingListItemsRef(listId: String) = db.collection("users").document(uid).collection("shoppingLists")
-        .document(listId)
-        .collection("items")
+    private fun shoppingListItemsRef(listId: String) =
+        db.collection("users").document(uid).collection("shoppingLists")
+            .document(listId)
+            .collection("items")
 
     /**
      * Retrieves a list of shopping lists for the current user.
@@ -68,16 +86,26 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
      * @param checked The new checked status.
      * @return True if the update was successful, false otherwise.
      */
-    suspend fun updateIngredientCheckedStatus(listId: String, itemId: String, checked: Boolean): Boolean {
+    suspend fun updateIngredientCheckedStatus(
+        listId: String,
+        itemId: String,
+        checked: Boolean
+    ): Boolean {
         return try {
             val itemRef = shoppingListItemsRef(listId).document(itemId)
 
-            Log.d("updateCheck", "Actualizando itemId: $itemId en lista: $listId con valor: $checked")
+            Log.d(
+                "updateCheck",
+                "Actualizando itemId: $itemId en lista: $listId con valor: $checked"
+            )
 
             itemRef.update("checked", checked).await()
             true
         } catch (e: Exception) {
-            Log.e("ShoppingListFirebaseDataSource", "Error al actualizar el estado del item: ${e.message}")
+            Log.e(
+                "ShoppingListFirebaseDataSource",
+                "Error al actualizar el estado del item: ${e.message}"
+            )
             false
         }
     }
@@ -160,23 +188,54 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
      * @param ingredient The ingredient to add or update.
      * @return True if the operation was successful, false otherwise.
      */
-    suspend fun addIngredientToShoppingListItemCollection(listId: String, ingredient: ShoppingIngredientModel): Boolean {
+    suspend fun addIngredientToShoppingListItemCollection(
+        listId: String,
+        ingredient: ShoppingIngredientModel
+    ): Boolean {
         return try {
-            val docRef = shoppingListItemsRef(listId).document(ingredient.ingredientId)
-
-            val snapshot = docRef.get().await()
-
-            if (snapshot.exists()) {
-                val existing = snapshot.toObject(ShoppingIngredientModel::class.java)
-                val updated = existing!!.copy(quantity = existing.quantity + ingredient.quantity)
-                docRef.set(updated.copy(id = ingredient.ingredientId)).await()
-            } else {
-                docRef.set(ingredient.copy(id = ingredient.ingredientId)).await()
+            if (ingredient.quantity < MIN_QUANTITY) {
+                Log.d(
+                    "SLDataSource",
+                    "Quantity ${ingredient.quantity} < $MIN_QUANTITY: not touching Firestore."
+                )
+                return true
             }
+            val docRef = shoppingListItemsRef(listId)
+                .document(ingredient.ingredientId)
+            val snapshot = docRef.get().await()
+            if (snapshot.exists()) {
 
+                val existing = snapshot.toObject(ShoppingIngredientModel::class.java)!!
+                val currentUnit = existing.unit
+                val rawSum = existing.quantity + ingredient.quantity
+                val decimals = getDecimalsForUnit(currentUnit.toString())
+                val roundedSum = roundTo(rawSum, decimals)
+
+
+                if (roundedSum < MIN_QUANTITY) {
+                    docRef.delete().await()
+                } else {
+
+                    val updated = existing.copy(quantity = roundedSum)
+                    docRef.set(updated.copy(id = ingredient.ingredientId)).await()
+                }
+            } else {
+
+                val newUnit = ingredient.unit
+                val decimals = getDecimalsForUnit(newUnit.toString())
+                val roundedQuantity = roundTo(ingredient.quantity, decimals)
+                val newItem = ingredient.copy(
+                    id = ingredient.ingredientId,
+                    quantity = roundedQuantity
+                )
+                docRef.set(newItem).await()
+            }
             true
         } catch (e: Exception) {
-            Log.e("ShoppingListFirebaseDataSource", "Error en addOrUpdateIngredientById: ${e.message}")
+            Log.e(
+                "ShoppingListFirebaseDataSource",
+                "Error adding/updating ingredient: ${e.message}"
+            )
             false
         }
     }
@@ -187,15 +246,39 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
      * @param item The item to update.
      * @return True if the update was successful, false otherwise.
      */
-    suspend fun updateItemInShoppingList(listId: String, item: ShoppingIngredientModel): Boolean {
+    suspend fun updateItemInShoppingList(
+        listId: String,
+        item: ShoppingIngredientModel
+    ): Boolean {
         return try {
+            if (item.quantity < MIN_QUANTITY) {
+                Log.d(
+                    "ShoppingListDataSource",
+                    "Quantity ${item.quantity} < $MIN_QUANTITY: document not modified."
+                )
+                return true
+            }
+
+            val decimals = getDecimalsForUnit(item.unit.toString())
+            val roundedQuantity = roundTo(item.quantity, decimals)
+
+            if (roundedQuantity < MIN_QUANTITY) {
+                Log.d(
+                    "ShoppingListDataSource",
+                    "Rounded quantity $roundedQuantity < $MIN_QUANTITY: operation ignored."
+                )
+                return true
+            }
+
+            val roundedItem = item.copy(quantity = roundedQuantity)
             shoppingListItemsRef(listId)
                 .document(item.id)
-                .set(item)
+                .set(roundedItem)
                 .await()
+
             true
         } catch (e: Exception) {
-            Log.e("ShoppingListDataSource", "Error al actualizar item: ${e.message}")
+            Log.e("ShoppingListDataSource", "Error updating item: ${e.message}")
             false
         }
     }
@@ -207,7 +290,10 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
      * @param maxHistory The maximum number of histories to keep.
      * @return The saved shopping history with its ID, or null if the save failed.
      */
-    suspend fun saveShoppingHistory(history: ShoppingHistoryModel, maxHistory: Int = 5): ShoppingHistoryModel? {
+    suspend fun saveShoppingHistory(
+        history: ShoppingHistoryModel,
+        maxHistory: Int = 5
+    ): ShoppingHistoryModel? {
         val collectionRef = db.collection("users")
             .document(uid)
             .collection("shoppingHistory")
@@ -307,25 +393,44 @@ class ShoppingListFirebaseDataSource @Inject constructor() {
      * @param listId The ID of the shopping list.
      * @param ingredients The ingredients to subtract.
      */
-    suspend fun subtractIngredientsFromShoppingList(listId: String, ingredients: List<ShoppingIngredientModel>) {
+    suspend fun subtractIngredientsFromShoppingList(
+        listId: String,
+        ingredients: List<ShoppingIngredientModel>
+    ) {
         for (ingredient in ingredients) {
             try {
-                val docRef = shoppingListItemsRef(listId).document(ingredient.ingredientId)
+                if (ingredient.quantity < MIN_QUANTITY) {
+                    Log.d(
+                        "SLDataSource",
+                        "Attempt to subtract ${ingredient.quantity} < $MIN_QUANTITY: ignored."
+                    )
+                    continue
+                }
+
+                val docRef = shoppingListItemsRef(listId)
+                    .document(ingredient.ingredientId)
                 val snapshot = docRef.get().await()
 
                 if (snapshot.exists()) {
-                    val existing = snapshot.toObject(ShoppingIngredientModel::class.java)
-                    val newQuantity = (existing?.quantity ?: 0.0) - ingredient.quantity
+                    val existing = snapshot.toObject(ShoppingIngredientModel::class.java)!!
+                    val currentUnit = existing.unit
+                    val rawDifference = existing.quantity - ingredient.quantity
 
-                    if (newQuantity <= 0.0) {
+                    val decimals = getDecimalsForUnit(currentUnit.toString())
+                    val roundedDifference = roundTo(rawDifference, decimals)
+
+                    if (roundedDifference < MIN_QUANTITY) {
                         docRef.delete().await()
                     } else {
-                        val updated = existing!!.copy(quantity = newQuantity)
+                        val updated = existing.copy(quantity = roundedDifference)
                         docRef.set(updated).await()
                     }
                 }
             } catch (e: Exception) {
-                Log.e("ShoppingListDataSource", "Error subtracting ingredient ${ingredient.ingredientId}", e)
+                Log.e(
+                    "ShoppingListFirebaseDataSource",
+                    "Error subtracting ingredient ${ingredient.ingredientId}: ${e.message}"
+                )
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.lucasdev.apprecetas.recepies.ui.favorites
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -22,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -37,6 +39,7 @@ fun MyFavoritesRecipesScreen(myFavoritesRecipesViewModel: MyFavoritesRecipesView
     val errorMessage by myFavoritesRecipesViewModel.errorMessage.collectAsState()
     val favorites by myFavoritesRecipesViewModel.favoriteRecipes.collectAsState()
     val pending by myFavoritesRecipesViewModel.pendingRecipes.collectAsState()
+    val isTogglingPending by myFavoritesRecipesViewModel.isTogglingPending.collectAsState()
     val context = LocalContext.current
 
     var expandedId by remember { mutableStateOf<String?>(null) }
@@ -113,6 +116,17 @@ fun MyFavoritesRecipesScreen(myFavoritesRecipesViewModel: MyFavoritesRecipesView
                                 }
                             }
                         }
+                    }
+                }
+                if (isTogglingPending) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.3f))
+                            .zIndex(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
                     }
                 }
             }

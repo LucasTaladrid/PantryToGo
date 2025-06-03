@@ -1,6 +1,7 @@
 package com.lucasdev.apprecetas.recepies.ui.recipesmain
 
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -22,11 +23,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavHostController
 import com.lucasdev.apprecetas.general.ui.scaffold.AppScaffold
+import com.lucasdev.apprecetas.general.ui.textApp.helpText.RecipesMainAdminHelp
 import com.lucasdev.apprecetas.general.ui.textApp.helpText.RecipesMainHelp
 import com.lucasdev.apprecetas.recepies.domain.model.RecipeModel
 import com.lucasdev.apprecetas.recepies.ui.common.RecipeCreateDialog
@@ -46,11 +49,13 @@ fun RecipesScreen(
     val isSaving by recipeViewModel.isSaving.collectAsState()
     val favorites by recipeViewModel.favoriteRecipes.collectAsState()
     val pending by recipeViewModel.pendingRecipes.collectAsState()
+    val isTogglingPending by recipeViewModel.isTogglingPending.collectAsState()
+    val isAdmin by recipeViewModel.isAdmin.collectAsState()
     val context = LocalContext.current
 
     var expandedId by remember { mutableStateOf<String?>(null) }
     var showCreateRecipeDialog by remember { mutableStateOf(false) }
-
+    val showFab = isAdmin
 
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -76,8 +81,9 @@ fun RecipesScreen(
     AppScaffold(
         userName = userName,
         navController = navController,
-        onFabClick = { showCreateRecipeDialog = true },
-        helpText = RecipesMainHelp.recipesMainHelp,
+        onFabClick = if (showFab) { { showCreateRecipeDialog = true } } else null,
+        helpText = if(isAdmin){
+            RecipesMainAdminHelp.recipesMainAdminHelp}else{RecipesMainHelp.recipesMainHelp},
         content = { padding ->
 
             Box(
@@ -141,6 +147,17 @@ fun RecipesScreen(
                         onDismiss = { showCreateRecipeDialog = false }
                     )
 
+                }
+                if (isTogglingPending) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.3f))
+                            .zIndex(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
                 }
             }
         }

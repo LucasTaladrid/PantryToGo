@@ -21,7 +21,7 @@ object MyPendingRecipesHelp {
                 append("🔖 ")
                 append("para guardarlas como pendientes.\n\n")
                 append("Al guardar una receta como pendiente, le indicas a la aplicación que quieres hacerla pronto, así te ayudamos añadiendo los ingredientes que " +
-                        "te faltan a la lista de la compra. Una vez hayas preparado la receta, solo tienes que presionar el botón 'Marcar como cocinada' y" +
+                        "te faltan a la lista de la compra.\n Una vez hayas preparado la receta, solo tienes que presionar el botón 'Marcar como cocinada' y" +
                         " la aplicación eliminará automáticamente esos ingredientes de tu despensa. ¿A que es cómodo?")
             }
         }

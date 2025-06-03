@@ -95,7 +95,11 @@ class RecipeUseCasesTest {
 
     @Test
     fun `AddRecipeToPendingUseCase should call repository addToPending`() = runBlocking {
-        val useCase = AddRecipeToPendingUseCase(repository)
+        val useCase = AddRecipeToPendingUseCase(
+            repository,
+            getShoppingListsUseCase = TODO(),
+            addShoppingListUseCase = TODO()
+        )
         val shoppingListId = "shoppingList1"
 
         useCase.invoke(testRecipe, shoppingListId)
