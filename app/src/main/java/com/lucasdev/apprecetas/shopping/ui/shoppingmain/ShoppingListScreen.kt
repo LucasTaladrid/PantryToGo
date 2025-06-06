@@ -24,7 +24,6 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -42,14 +41,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -65,7 +59,6 @@ import com.lucasdev.apprecetas.ingredients.domain.model.CategoryModel
 import com.lucasdev.apprecetas.ingredients.domain.model.IngredientModel
 import com.lucasdev.apprecetas.ingredients.ui.pantry.PantryIngredientsViewModel
 import com.lucasdev.apprecetas.shopping.domain.model.ShoppingIngredientModel
-import kotlinx.coroutines.flow.collectLatest
 
 
 @Composable
@@ -79,7 +72,6 @@ fun ShoppingListScreen(
     val error = shoppingListViewModel.errorMessage.collectAsState()
     val sections = shoppingListViewModel.shoppingItemSections.collectAsState()
     val ingredients = shoppingListViewModel.ingredients.collectAsState()
-    val categories = shoppingListViewModel.categories.collectAsState()
     val activeListId = shoppingListViewModel.activeListId.collectAsState().value
     val lifecycleOwner = LocalLifecycleOwner.current
     val context = LocalContext.current
@@ -214,7 +206,6 @@ fun ShoppingListScreen(
             if (showAddDialog) {
                 AddIngredientWithQuantityDialog(
                     title = "Añadir ingrediente a la lista",
-                    categories = categories.value,
                     availableIngredients = ingredients.value,
                     onDismiss = { showAddDialog = false },
                     errorMessage = error.value,

@@ -2,7 +2,6 @@ package com.lucasdev.apprecetas.recepies.ui.common
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,8 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -47,9 +44,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.lucasdev.apprecetas.R
-import com.lucasdev.apprecetas.general.ui.appTextFields.AppOutlinedTextField
 import com.lucasdev.apprecetas.general.ui.dialogs.AddIngredientWithQuantityDialog
-import com.lucasdev.apprecetas.general.ui.dropDownSelector.DropdownSelector
 import com.lucasdev.apprecetas.ingredients.domain.model.CategoryModel
 import com.lucasdev.apprecetas.ingredients.domain.model.IngredientModel
 import com.lucasdev.apprecetas.ingredients.domain.model.PantryIngredientModel
@@ -222,7 +217,6 @@ fun RecipeCreateDialog(
     if (showIngredientDialog) {
         AddIngredientWithQuantityDialog(
             title = "Añadir ingrediente a la receta",
-            categories = categories,
             availableIngredients = ingredients,
             existingIngredients = recipeIngredients,
             onDismiss = { showIngredientDialog = false },
