@@ -1,17 +1,16 @@
 package com.lucasdev.apprecetas.general.ui.dialogs
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -28,76 +27,70 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.lucasdev.apprecetas.R
-import com.lucasdev.apprecetas.general.ui.dropDownSelector.DropdownSelector
-import com.lucasdev.apprecetas.ingredients.domain.model.CategoryModel
 import com.lucasdev.apprecetas.ingredients.domain.model.IngredientModel
 import com.lucasdev.apprecetas.ingredients.domain.model.PantryIngredientModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddIngredientWithQuantityDialog(
-    categories: List<CategoryModel>,
     availableIngredients: List<IngredientModel>,
     onDismiss: () -> Unit,
     onConfirm: (IngredientModel, Double) -> Unit,
     errorMessage: String?,
-    title:String,
+    title: String,
     existingIngredients: List<PantryIngredientModel>? = null
 ) {
-    var selectedCategory by remember { mutableStateOf<CategoryModel?>(null) }
     var query by remember { mutableStateOf("") }
     var selectedIngredient by remember { mutableStateOf<IngredientModel?>(null) }
     var quantity by remember { mutableStateOf("") }
     var duplicateError by remember { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
 
-    val filteredIngredients = availableIngredients.filter {
-        (selectedCategory == null || it.category == selectedCategory) &&
+    val filteredIngredients = remember(query) {
+        if (query.length >= 2) {
+            availableIngredients.filter {
                 it.name.contains(query, ignoreCase = true)
+            }.take(5)
+        } else {
+            emptyList()
+        }
     }
+
     AlertDialog(
         containerColor = Color.White,
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
             Column {
-                DropdownSelector(
-                    label = "Categoría",
-                    options = listOf(null) + categories,
-                    selected = selectedCategory,
-                    onSelected = {
-                        if (it != null) {
-                            selectedCategory = it
+                ExposedDropdownMenuBox(
+                    expanded = expanded && filteredIngredients.isNotEmpty(),
+                    onExpandedChange = { expanded = it }
+                ) {
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = {
+                            query = it
                             selectedIngredient = null
-                            query = ""
-                        }
-                    },
-                    labelMapper = { it?.name ?: "Selecciona una categoría" }
-                )
-
-                Spacer(Modifier.height(12.dp))
-
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = {
-                        query = it
-                        selectedIngredient = null
-                    },
-                    label = { Text("Buscar ingrediente") },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = selectedCategory != null
-                )
-
-                if (selectedCategory != null && selectedIngredient == null && query.isNotBlank()) {
-                    LazyColumn(modifier = Modifier.heightIn(max = 150.dp)) {
-                        items(filteredIngredients) { ingredient ->
-                            Text(
-                                text = "${ingredient.name} (${ingredient.unit.name})",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        selectedIngredient = ingredient
-                                        query = ingredient.name
-                                    }
-                                    .padding(8.dp)
+                            expanded = true
+                        },
+                        label = { Text("Buscar ingrediente") },
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .menuAnchor()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expanded && filteredIngredients.isNotEmpty(),
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        filteredIngredients.forEach { ingredient ->
+                            DropdownMenuItem(
+                                text = { Text("${ingredient.name} (${ingredient.unit.name})") },
+                                onClick = {
+                                    selectedIngredient = ingredient
+                                    query = ingredient.name
+                                    expanded = false
+                                }
                             )
                         }
                     }
@@ -113,7 +106,9 @@ fun AddIngredientWithQuantityDialog(
                     modifier = Modifier.fillMaxWidth(),
                     enabled = selectedIngredient != null
                 )
+
                 Spacer(Modifier.height(8.dp))
+
                 Text(
                     text = "¿No encuentras el ingrediente? Regístralo en 'Mis ingredientes'",
                     style = MaterialTheme.typography.bodySmall,
@@ -121,6 +116,7 @@ fun AddIngredientWithQuantityDialog(
                         .padding(top = 4.dp)
                         .align(Alignment.CenterHorizontally)
                 )
+
                 if (duplicateError) {
                     Text(
                         text = "Ese ingrediente ya está en la receta",
@@ -129,6 +125,7 @@ fun AddIngredientWithQuantityDialog(
                         modifier = Modifier.padding(top = 4.dp)
                     )
                 }
+
                 if (!errorMessage.isNullOrBlank()) {
                     Spacer(Modifier.height(8.dp))
                     Text(
@@ -138,9 +135,7 @@ fun AddIngredientWithQuantityDialog(
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     )
                 }
-
             }
-
         },
         confirmButton = {
             val isEnabled = selectedIngredient != null && quantity.toDoubleOrNull() != null
@@ -174,6 +169,6 @@ fun AddIngredientWithQuantityDialog(
             ) {
                 Text("Cancelar")
             }
-        },
+        }
     )
 }

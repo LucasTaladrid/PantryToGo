@@ -66,7 +66,6 @@ fun PantryIngredientScreen(
     val availableIngredients = pantryIngredientsViewModel.allIngredients.collectAsState()
     val userName = pantryIngredientsViewModel.userName.collectAsState()
     val errorMessage = pantryIngredientsViewModel.errorMessage.collectAsState()
-    val categories = pantryIngredientsViewModel.categories.collectAsState()
     val editingIngredient = pantryIngredientsViewModel.selectedIngredientToEdit.collectAsState()
     val groupedIngredients = pantryIngredientsViewModel.groupedIngredients.collectAsState()
     val loading = pantryIngredientsViewModel.isLoading.collectAsState()
@@ -171,7 +170,6 @@ fun PantryIngredientScreen(
                 if (showDialog) {
                     AddIngredientWithQuantityDialog(
                         title = "Añadir ingrediente a la lista",
-                        categories = categories.value,
                         availableIngredients = availableIngredients.value,
                         onDismiss = { showDialog = false },
                         errorMessage = errorMessage.value,
