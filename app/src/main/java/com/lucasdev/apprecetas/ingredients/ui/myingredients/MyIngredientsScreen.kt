@@ -224,7 +224,7 @@ fun MyIngredientsScreen(myIngredientsViewModel: MyIngredientsViewModel, back: ()
     }
 
 }
-
+//todo merge this two methods
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddIngredientDialog(
